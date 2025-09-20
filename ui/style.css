@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Kodchasan:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+
+:root {
+    --cor-primaria:#333446;
+    --cor-secundaria:#7F8CAA;
+    --cor-terciaria:#B8CFCE;
+    --cor-texto:#EAEFEF;
+    --cor-botao: #7C93C3;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--cor-primaria);
+    font-family: "Kodchasan", sans-serif;
+    color: var(--cor-terciaria);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.div__logo {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.titulo__logo {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+    color: var(--cor-terciaria);
+}
+
+.div__formulario{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: 300px;
+}
+
+.inputs, .botao__login {
+    padding: 0.8em;
+    border: none;
+    border-radius: 12px;
+    font-size: 1em;
+}
+
+.inputs {
+    background-color: var(--cor-secundaria);
+    font-weight: 500;
+    color: var(--cor-texto);
+}
+
+.inputs::placeholder {
+    color: var(--cor-texto);
+    opacity: 1;
+    font-weight: 500;
+}
+
+.botao__login {
+    background-color: var(--cor-botao);
+    color: var(--cor-texto);
+    font-weight: 600;
+}
+
+.senha__signup{
+    color: var(--cor-terciaria);
+    text-decoration: none;  
+}
+
+.signup__texto, .login__texto{
+    color: var(--cor-texto);
+}
+
