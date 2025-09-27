@@ -1,0 +1,142 @@
+header{
+    margin: 0em 1em;
+    padding: 0.5em 0em ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-content: space-around;
+    gap: 30em;
+    background-color:var(--cor-primaria);
+    width: 95%;
+}
+
+.div__logo__pequena{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.titulo__logo__pequena {
+    font-size: 1em;
+    color: var(--cor-terciaria);
+    
+}
+
+.header__lista{
+    list-style:none ;
+    font-size: 1.5em;
+    display: flex;
+    justify-content: space-between;
+    justify-content:flex-start ;
+    gap:1em;
+}
+
+
+.header__links__lista{
+    display: flex;
+    list-style: none;
+    justify-content: space-between;
+    gap: 1em;
+    align-items: end;
+}
+
+.home{
+    text-decoration: none;
+    color: var(--cor-botao);
+    font-weight: bold;
+}
+
+.itens__lista:hover{
+    text-decoration: none;
+    color: var(--cor-hover);
+    cursor:pointer;
+}
+
+
+.botoes__header{
+    background-color: var(--cor-botao);
+    color: var(--cor-texto);
+    text-decoration: none;
+    font-size: 1.5em;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: none;
+    cursor: pointer;
+}
+
+.botoes__header:hover{
+    background-color: var(--cor-hover);
+}
+
+.botao__sign{
+    background-color: var(--cor-botao-sec);
+}
+
+.botao__sign:hover{
+    background-color: var(--cor-hover-sec);
+}
+
+.corpo__landing{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 75vh;
+
+}
+
+.div__texto{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.titulo__home{
+    font-size:50px ;
+    
+}
+
+.paragrafo__home{
+
+    font-size: 36px;
+}
+
+.lista__creating__discover{
+    font-size:30px ;
+    display: flex;
+    padding-top: 1.5em ;
+    gap: 1.5em;
+}
+
+.itens__dis__cre{
+    background-color: var(--cor-botao); 
+    border-radius: 30px; 
+    padding: 10px 25px; 
+    margin: 0; 
+    border: none;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+
+}
+
+.itens__dis__cre:hover{
+    background-color: var(--cor-hover);
+}
+
+.itens__dis__cre:last-child{
+    background-color: var(--cor-botao-sec);
+}
+
+.itens__dis__cre:last-child:hover{
+    background-color: var(--cor-hover-sec);
+}
+
+.discover{
+    color:var(--cor-texto);
+    text-decoration: none;
+}
