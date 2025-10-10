@@ -6,7 +6,7 @@
 
 # Technologies 
 
-For UI, Only JS will be used to automatize HTML pages and CSS for stylezation to build a robust basis knowledge.
+For UI, Only JS will be used to automatize HTML pages and CSS for stylezation to build a robust basis knowledge, temporaly.
 
 API will be formed by a main application in Golang, which provides high-performance REST communication, lightweight concurrency and native library for queries. AI operations will be separated in a microservice application with python
 utilizing Flask framework and langchain. For chat communication, both will be continously connected to provide quick responses.
