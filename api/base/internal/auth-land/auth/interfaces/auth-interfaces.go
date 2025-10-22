@@ -6,11 +6,11 @@ import (
 )
 
 type AuthServiceITF interface {
-	citf.Common[d.Auth, string]
-	Login(*d.Auth) error
+	citf.Common[d.Auth]
+	Comparate(data *d.Auth) citf.Errfunc
 }
 
 type AuthRepositoryITF interface {
-	citf.Common[d.Auth, string]
-	GetByEmail(*d.Auth) error
+	citf.Common[d.Auth]
+	GetByEmail(data *d.Auth) citf.Errfunc
 }

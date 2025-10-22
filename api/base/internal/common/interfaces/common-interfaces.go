@@ -1,14 +1,12 @@
 package interfaces
 
-import (
-	"github.com/gin-gonic/gin"
-	"context"
-)
 
-type Common[T any, PK ~string | ~uint64] interface {
-	Create(data *T) error
-	GetByID(PK) (*T, error)
-	Fetch(limit, offset int) ([]T, error)
-	Update(data *T) error
-	Delete(id PK) error
+type Errfunc func()
+
+type Common[T any] interface {
+	Create(data *T) Errfunc
+	GetByID(data *T) Errfunc
+	Fetch(limit, offset int) ([]T, Errfunc)
+	Update(data *T) Errfunc
+	Delete(data *T) Errfunc
 }

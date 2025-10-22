@@ -2,21 +2,20 @@ package handlers
 
 import (
 	d "aigents-base/internal/auth-land/auth/domain"
-	itf "aigents-base/internal/common/interfaces"
+	auitf "aigents-base/internal/auth-land/auth/interfaces"
 	c_at "aigents-base/internal/common/atoms"
 	m "aigents-base/internal/auth-land/auth-signature/middleware"
 
 	"net/http"
-	"time"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
-	s itf.Common[d.Auth, string]
+	s auitf.AuthServiceITF
 }
 
-func NewAuthHandler(sv itf.Common[d.Auth, string]) *AuthHandler {
+func NewAuthHandler(sv auitf.AuthServiceITF) *AuthHandler {
 	return &AuthHandler{s: sv}
 }
 
@@ -33,7 +32,7 @@ func (h *AuthHandler) Create(gctx *gin.Context) {
 
 	err := h.s.Create(&d.Auth{Email: req.Email, Password: req.Password})
 	if err != nil {
-		gctx.JSON(http.StatusBadRequest, err)
+		err(gctx)
 		return
 	}
 
@@ -58,13 +57,13 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := as_at.GenerateJWT(auth.Email, auth.Role, m.AccessTokenTTL, m.JWTSecret)
+	accessToken, err := as_at.GenerateJWT(auth.UUID, auth.Role, m.AccessTokenTTL, m.JWTSecret)
 	if err != nil {
 		err(gctx)
 		return
 	}
 
-	refreshToken, err := as_at.GenerateJWT(auth.Email, auth.Role, m.RefreshTokenTTL, m.RefreshSecret)
+	refreshToken, err := as_at.GenerateJWT(auth.UUID, auth.Role, m.RefreshTokenTTL, m.RefreshSecret)
 	if err != nil {
 		err(gctx)
 		return
@@ -93,7 +92,7 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 		return
 	}
 
-	newAccessToken, err := as_at.GenerateJWT(claims.Email, claims.Role, m.AccessTokenTTL, m.JWTSecret)
+	newAccessToken, err := as_at.GenerateJWT(claims.UUID, claims.Role, m.AccessTokenTTL, m.JWTSecret)
 	if err != nil {
 		err(gctx)
 		return

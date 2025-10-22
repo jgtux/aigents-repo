@@ -2,37 +2,39 @@ package repositories
 
 import (
 	d "aigents-base/internal/auth-land/auth/domain"
-	itf "aigents-base/internal/common/interfaces"
-
+	auitf "aigents-base/internal/auth-land/auth/interfaces"
 
 	"github.com/gin-gonic/gin"
 	"database/sql"
-	"context"
 )
 
 type AuthRepository struct {
 	db *sql.DB
 }
 
-func NewAuthRepository(db *sql.DB) itf.Common[d.Auth, string] {
+func NewAuthRepository(db *sql.DB) auitf.AuthRepositoryITF {
 	return &AuthRepository{db: db}
 }
 
-func (a *AuthRepository) Create(gctx *gin.Context, data *d.Auth) error {
+func (a *AuthRepository) Create(data *d.Auth) func() {
 	return nil
 }
 
-func (a *AuthRepository) GetByID(gctx *gin.Context, uuid string) (*d.Auth, error) {
-	return &d.Auth{}, nil
+func (a *AuthRepository) GetByEmail(data *d.Auth) func() {
+	return nil
 }
-func (a *AuthRepository) Fetch(gctx *gin.Context, limit, offset int) ([]d.Auth, error) {
+
+func (a *AuthRepository) GetByID(data *d.Auth) func() {
+	return nil
+}
+func (a *AuthRepository) Fetch(limit, offset int) ([]d.Auth, func()) {
 	return []d.Auth{}, nil
 }
 
-func (a *AuthRepository) Update(gctx *gin.Context, data *d.Auth) error {
+func (a *AuthRepository) Update(data *d.Auth) func() {
 	return nil
 }
 
-func (a *AuthRepository) Delete(gctx *gin.Context, uuid string) error {
+func (a *AuthRepository) Delete(data *d.Auth) func() {
 	return nil
 }

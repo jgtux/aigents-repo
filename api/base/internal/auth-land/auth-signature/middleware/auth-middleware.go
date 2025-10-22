@@ -10,7 +10,7 @@ import (
 )
 
 type Claims struct {
-	Email string `json:"email"`
+	UUID string `json:"auth_uuid"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
@@ -19,7 +19,7 @@ var (
 	JWTSecret = []byte(os.Getenv("JWT_SECRET"))
 	RefreshSecret = []byte(os.Getenv("REFRESH_SECRET"))
 	AccessTokenTTL  = c_at.ParseEnvMinutesAtom("ACCESS_TOKEN_TTL", 15)
-	RefreshTokenTTL = c_at.ParseEnvMinutesAtom("REFRESH_TOKEN_TTL", 10080)	
+	RefreshTokenTTL = c_at.ParseEnvMinutesAtom("REFRESH_TOKEN_TTL", 10080)
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -45,7 +45,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			)
 			return
 		}
-		gctx.Set("email", claims.Email)
+		gctx.Set("email", claims.UUID)
 		gctx.Set("role", claims.Role)
 
 		gctx.Next()

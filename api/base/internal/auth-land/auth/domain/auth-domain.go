@@ -5,6 +5,7 @@ import (
 )
 
 type Auth struct {
+	UUID string
 	Email string
 	Password string
 	Role string
