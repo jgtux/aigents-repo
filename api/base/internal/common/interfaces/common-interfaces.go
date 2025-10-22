@@ -1,12 +1,10 @@
 package interfaces
 
 
-type Errfunc func()
-
 type Common[T any] interface {
-	Create(data *T) Errfunc
-	GetByID(data *T) Errfunc
-	Fetch(limit, offset int) ([]T, Errfunc)
-	Update(data *T) Errfunc
-	Delete(data *T) Errfunc
+	Create(data *T) func()
+	GetByID(data *T) func()
+	Fetch(limit, offset int) ([]T, func())
+	Update(data *T) func()
+	Delete(data *T) func()
 }
