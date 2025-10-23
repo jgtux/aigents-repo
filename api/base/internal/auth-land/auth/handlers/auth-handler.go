@@ -51,19 +51,19 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 	}
 
 	auth := &d.Auth{Email: req.Email, Password: req.Password}
-	err := h.s.Login(auth)
+	err := h.s.Comparate(auth)
 	if err != nil {
 		err(gctx)
 		return
 	}
 
-	accessToken, err := as_at.GenerateJWT(auth.UUID, auth.Role, m.AccessTokenTTL, m.JWTSecret)
+	accessToken, err := m.GenerateJWT(auth.UUID, auth.Role, m.AccessTokenTTL, m.JWTSecret)
 	if err != nil {
 		err(gctx)
 		return
 	}
 
-	refreshToken, err := as_at.GenerateJWT(auth.UUID, auth.Role, m.RefreshTokenTTL, m.RefreshSecret)
+	refreshToken, err := m.GenerateJWT(auth.UUID, auth.Role, m.RefreshTokenTTL, m.RefreshSecret)
 	if err != nil {
 		err(gctx)
 		return
@@ -92,7 +92,7 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 		return
 	}
 
-	newAccessToken, err := as_at.GenerateJWT(claims.UUID, claims.Role, m.AccessTokenTTL, m.JWTSecret)
+	newAccessToken, err := m.GenerateJWT(claims.UUID, claims.Role, m.AccessTokenTTL, m.JWTSecret)
 	if err != nil {
 		err(gctx)
 		return

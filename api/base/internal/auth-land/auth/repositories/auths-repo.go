@@ -5,8 +5,8 @@ import (
 	d "aigents-base/internal/auth-land/auth/domain"
 	auitf "aigents-base/internal/auth-land/auth/interfaces"
 
+	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
-	"strings"
 	"database/sql"
 	"net/http"
 )
@@ -19,7 +19,7 @@ func NewAuthRepository(db *sql.DB) auitf.AuthRepositoryITF {
 	return &AuthRepository{db: db}
 }
 
-func (a *AuthRepository) Create(data *d.Auth) func() {
+func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
 	query := `
 		INSERT INTO auth (
 			email,
@@ -37,7 +37,7 @@ func (a *AuthRepository) Create(data *d.Auth) func() {
 
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
-			if pgErr.Code == "23505" { 
+			if pgErr.Code == "23505" {
 				c_at.RespFuncAbortAtom(
 					http.StatusConflict,
 					"(R) Email already registered.",
@@ -56,7 +56,7 @@ func (a *AuthRepository) Create(data *d.Auth) func() {
 	return nil
 }
 
-func (a *AuthRepository) GetByEmail(data *d.Auth) func() {
+func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
 	query := `SELECT auth_uuid,
                          password,
                          created_at,
@@ -88,18 +88,18 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func() {
 	return nil
 }
 
-func (a *AuthRepository) GetByID(data *d.Auth) func() {
+func (a *AuthRepository) GetByID(data *d.Auth) func(*gin.Context) {
 
 	return nil
 }
-func (a *AuthRepository) Fetch(limit, offset int) ([]d.Auth, func()) {
+func (a *AuthRepository) Fetch(limit, offset int) ([]d.Auth, func(*gin.Context)) {
 	return []d.Auth{}, nil
 }
 
-func (a *AuthRepository) Update(data *d.Auth) func() {
+func (a *AuthRepository) Update(data *d.Auth) func(*gin.Context) {
 	return nil
 }
 
-func (a *AuthRepository) Delete(data *d.Auth) func() {
+func (a *AuthRepository) Delete(data *d.Auth) func(*gin.Context) {
 	return nil
 }

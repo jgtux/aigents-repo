@@ -6,6 +6,8 @@ import (
 	auitf "aigents-base/internal/auth-land/auth/interfaces"
 	c_at "aigents-base/internal/common/atoms"
 
+
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
@@ -17,14 +19,14 @@ func NewAuthService(repo auitf.AuthRepositoryITF) auitf.AuthServiceITF {
 	return &AuthService{r: repo}
 }
 
-func (s *AuthService) Create(data *d.Auth) func() {
+func (s *AuthService) Create(data *d.Auth) func(*gin.Context) {
 	hashedPass := a_at.HashPassAtom(data.Password)
 	data.Password = hashedPass
 
 	return s.r.Create(data)
 }
 
-func (s *AuthService) Comparate(data *d.Auth) func() {
+func (s *AuthService) Comparate(data *d.Auth) func(*gin.Context) {
 	auth := &d.Auth{}
 	auth.Email = data.Email
 
@@ -44,18 +46,18 @@ func (s *AuthService) Comparate(data *d.Auth) func() {
 	return nil
 }
 
-func (s *AuthService) GetByID(data *d.Auth) func() {
+func (s *AuthService) GetByID(data *d.Auth) func(*gin.Context) {
 	return s.r.GetByID(data)
 }
 
-func (s *AuthService) Fetch(limit, offset int) ([]d.Auth, func()) {
+func (s *AuthService) Fetch(limit, offset int) ([]d.Auth, func(*gin.Context)) {
 	return s.r.Fetch(limit, offset)
 }
 
-func (s *AuthService) Update(data *d.Auth) func() {
+func (s *AuthService) Update(data *d.Auth) func(*gin.Context) {
 	return s.r.Update(data)
 }
 
-func (s *AuthService) Delete(data *d.Auth) func() {
+func (s *AuthService) Delete(data *d.Auth) func(*gin.Context) {
 	return s.r.Delete(data)
 }

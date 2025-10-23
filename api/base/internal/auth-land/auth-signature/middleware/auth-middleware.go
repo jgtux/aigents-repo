@@ -75,3 +75,5 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 		gctx.Next()
 	}
 }
+
+func GenerateJWT(c *Claims)

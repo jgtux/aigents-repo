@@ -22,7 +22,7 @@ func AbortRespAtom(gctx *gin.Context, code int, msg string) {
 	})
 }
 
-func RespFuncAbortAtom(code int, msg string) func() {
+func RespFuncAbortAtom(code int, msg string) func(*gin.Context) {
 	return func(gctx *gin.Context) {
 		gctx.AbortWithStatusJSON(code, map[string]any{
 			"status": code,
