@@ -11,7 +11,7 @@ import (
 func RespAtom(gctx *gin.Context, code int, msg string) {
 	gctx.JSON(code, map[string]any{
 		"status": code,
-		"error": msg,
+		"message": msg,
 	})
 }
 

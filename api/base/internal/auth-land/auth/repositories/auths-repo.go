@@ -1,14 +1,16 @@
 package repositories
 
 import (
-	c_at "aigents-base/internal/common/atoms"
 	d "aigents-base/internal/auth-land/auth/domain"
 	auitf "aigents-base/internal/auth-land/auth/interfaces"
+	c_at "aigents-base/internal/common/atoms"
+	"fmt"
+
+	"database/sql"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
-	"database/sql"
-	"net/http"
 )
 
 type AuthRepository struct {
@@ -47,7 +49,7 @@ func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
 
 		return c_at.RespFuncAbortAtom(
 			http.StatusInternalServerError,
-			"(R) An unknown error occurred.",
+			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
 		)
 	}
 
@@ -76,11 +78,11 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
 			return c_at.RespFuncAbortAtom(
 				http.StatusNotFound,
 				"(R) Authentication not found.")
-		} else {
-			return c_at.RespFuncAbortAtom(
-				http.StatusInternalServerError,
-				"(R) An unknown error ocurred.")
-		}
+		} 
+		return c_at.RespFuncAbortAtom(
+			http.StatusInternalServerError,
+			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
+		)
 	}
 
 	return nil
