@@ -38,19 +38,17 @@ func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" {
-				c_at.RespFuncAbortAtom(
+				return c_at.RespFuncAbortAtom(
 					http.StatusConflict,
 					"(R) Email already registered.",
 				)
-				return nil
 			}
 		}
 
-		c_at.RespFuncAbortAtom(
+		return c_at.RespFuncAbortAtom(
 			http.StatusInternalServerError,
 			"(R) An unknown error occurred.",
 		)
-		return nil
 	}
 
 	return nil
@@ -75,11 +73,11 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c_at.RespFuncAbortAtom(
+			return c_at.RespFuncAbortAtom(
 				http.StatusNotFound,
 				"(R) Authentication not found.")
 		} else {
-			c_at.RespFuncAbortAtom(
+			return c_at.RespFuncAbortAtom(
 				http.StatusInternalServerError,
 				"(R) An unknown error ocurred.")
 		}
