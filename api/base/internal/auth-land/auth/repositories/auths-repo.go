@@ -21,7 +21,7 @@ func NewAuthRepository(db *sql.DB) auitf.AuthRepositoryITF {
 
 func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
 	query := `
-		INSERT INTO auth (
+		INSERT INTO auths (
 			email,
 			password
 		) VALUES ($1, $2)
@@ -62,7 +62,7 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
                          created_at,
                          updated_at,
                          deleted_at
-                  FROM auth
+                  FROM auths
                   WHERE email = $1;`
 
 	err := a.db.QueryRow(query, data.Email).Scan(

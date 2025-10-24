@@ -12,6 +12,7 @@ import (
 
 
 func main() {
+	db.Init()
 
 	authRepo := ar.NewAuthRepository(db.DB)
 	authSv := as.NewAuthService(authRepo)
@@ -23,9 +24,9 @@ func main() {
 	api := r.Group("/api/v1")
 
 	{
-		api.POST("/create", authHdlr.Create)
-		api.POST("/login", authHdlr.Login)
-		api.GET("/refresh", authHdlr.Refresh)
+		api.POST("/auth/create", authHdlr.Create)
+		api.POST("/auth/login", authHdlr.Login)
+		api.GET("/auth/refresh", authHdlr.Refresh)
 	}
 
 	r.Run(":8080")

@@ -5,6 +5,7 @@ import (
 
 	"os"
 	"net/http"
+	"time"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -76,4 +77,31 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 	}
 }
 
-func GenerateJWT(c *Claims)
+func GenerateJWT(c *Claims, useRefresh bool) (string, func(*gin.Context)) {
+	now := time.Now()
+
+	var ttl time.Duration
+	var secret []byte
+
+	if useRefresh {
+		ttl = RefreshTokenTTL
+		secret = RefreshSecret
+	} else {
+		ttl = AccessTokenTTL
+		secret = JWTSecret
+	}
+
+	c.IssuedAt = jwt.NewNumericDate(now)
+	c.ExpiresAt = jwt.NewNumericDate(now.Add(ttl))
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
+	signedStr, err := token.SignedString(secret)
+	if err != nil {
+		return "", c_at.RespFuncAbortAtom(
+			http.StatusInternalServerError,
+			"(M) Could not generate token.",
+		)
+	}
+
+	return signedStr, nil
+}

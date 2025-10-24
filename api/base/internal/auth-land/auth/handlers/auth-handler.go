@@ -57,13 +57,14 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := m.GenerateJWT(auth.UUID, auth.Role, m.AccessTokenTTL, m.JWTSecret)
+	claims := &m.Claims{ UUID: auth.UUID, Role: auth.Role }
+	accessToken, err := m.GenerateJWT(claims, false)
 	if err != nil {
 		err(gctx)
 		return
 	}
 
-	refreshToken, err := m.GenerateJWT(auth.UUID, auth.Role, m.RefreshTokenTTL, m.RefreshSecret)
+	refreshToken, err := m.GenerateJWT(claims, true)
 	if err != nil {
 		err(gctx)
 		return
@@ -88,13 +89,13 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	})
 
 	if err != nil || !token.Valid {
-		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(H) Invalid refresh token.")
+		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(M) Invalid refresh token.")
 		return
 	}
 
-	newAccessToken, err := m.GenerateJWT(claims.UUID, claims.Role, m.AccessTokenTTL, m.JWTSecret)
-	if err != nil {
-		err(gctx)
+	newAccessToken, errF := m.GenerateJWT(claims, false)
+	if errF != nil {
+		errF(gctx)
 		return
 	}
 
