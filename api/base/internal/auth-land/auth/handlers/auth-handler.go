@@ -21,12 +21,12 @@ func NewAuthHandler(sv auitf.AuthServiceITF) *AuthHandler {
 
 func (h *AuthHandler) Create(gctx *gin.Context) {
 	var req struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8,max=25"`
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request.")
+		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		return
 	}
 
@@ -41,12 +41,12 @@ func (h *AuthHandler) Create(gctx *gin.Context) {
 
 func (h *AuthHandler) Login(gctx *gin.Context) {
 	var req struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8,max=25"`
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request.")
+		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		return
 	}
 

@@ -9,7 +9,7 @@ type User struct {
 	AuthUUID string
 	FirstName string
 	LastName string
-	document_id string
+	DocumentID string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
