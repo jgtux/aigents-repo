@@ -1,0 +1,56 @@
+/* Estilos específicos da página About */
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3em 2em;
+    min-height: 80vh;
+}
+
+main h2 {
+    font-size: 2em;
+    margin-bottom: 1.5em;
+    color: var(--cor-terciaria);
+    line-height: 1.4;
+}
+
+main p {
+    font-size: 1.1em;
+    line-height: 1.8;
+    text-align: justify;
+    font-weight: 400;
+}
+
+/* Destacar o link About no menu quando estiver na página */
+.About {
+    color: var(--cor-botao);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+
+.corpo__about{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center; 
+    gap: 3em; 
+}
+
+.textos__about{
+    display: flex;
+    flex-direction: column;
+    flex: 1; 
+}
+
+.imagem__about{
+    width: 300px;  
+    height: auto;
+    border-radius: 10px; 
+}
+
+figcaption{
+    text-align: center;
+}
+
+
