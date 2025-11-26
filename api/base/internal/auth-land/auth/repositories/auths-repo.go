@@ -61,8 +61,8 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
                          password,
                          created_at,
                          updated_at,
-                         deleted_at
-                  FROM auths
+        	         COALESCE(deleted_at, TIMESTAMP '0001-01-01 00:00:00')
+		 FROM auths
                   WHERE email = $1;`
 
 	err := a.db.QueryRow(query, data.Email).Scan(
@@ -76,7 +76,7 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c_at.RespFuncAbortAtom(
-				http.StatusNotFound,
+				http.StatusUnauthorized,
 				"(R) Authentication not found.")
 		} 
 		return c_at.RespFuncAbortAtom(

@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIgents Sign-up</title>
-    <link rel="stylesheet" href="/estilos/styles.css">
+    <link rel="stylesheet" href="../estilos/styles.css">
 </head>
 <body>
-    <script type="module" src="/Scripts/scriptSign.js"></script>
+
     <section class="corpo">    
         <div class="div__logo">
-            <img src="/img/Vector.svg" alt="Logo da AIgents"><br>
+            <img src="../img/Vector.svg" alt="Logo da AIgents"><br>
             <h1 class="titulo__logo"><strong>AIgents</strong></h1>
         </div>
 
@@ -20,12 +20,22 @@
                 <input type="email" placeholder="E-mail" class="inputs">
                 <input type="password" placeholder="Password" class="inputs">
                 <input type="password" placeholder="Confirm your Password" class="inputs">
+
+                <!-- corrigido -->
                 <input type="submit" value="Sign-up" class="botao__login" id="btnSignup">
-                
+
             </form>
-            <p class="login__texto">Already have an account? <a href="Login.html" class="senha__signup">Log-in</a></p>
+
+            <p class="login__texto">
+                Already have an account? 
+                <a href="Login.html" class="senha__signup">Log-in</a>
+            </p>
         </div>
         
     </section>
+
+    <script src="../Scripts/auth.js"></script>
+    <script type="module" src="../Scripts/scriptSign.js"></script>
+
 </body>
 </html>

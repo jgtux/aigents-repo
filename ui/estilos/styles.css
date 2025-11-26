@@ -1,9 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Kodchasan:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
-@import url(/estilos/home.css);
-@import url(/estilos/log_sign.css);
-@import url(/estilos/about.css);
-@import url(/estilos/agents.css);
-@import url(/estilos/projects.css);
+@import url(../estilos/home.css);
+@import url(../estilos/log_sign.css);
+@import url(../estilos/about.css);
+@import url(../estilos/agents.css);
+@import url(../estilos/projects.css);
+@import url(../estilos/criar.css);
 
 :root {
     --cor-primaria:linear-gradient(135deg, #333446 63%, #5F6292 100%);
