@@ -15,7 +15,7 @@ Database will use PostgreSQL, a robust open-source database system, with essenti
 
 # Collaborators
 
-- jgtux: API development and code reviewer
+- jgtux: API development
 - thom-pd: API development for AI implementation
 - victor-mfranca: UX/UI development
 - EnzoAmbrosio124: Database scheme
