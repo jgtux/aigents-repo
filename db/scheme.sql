@@ -49,8 +49,6 @@ CREATE TABLE agent_categories (
   category_name VARCHAR(32) NOT NULL,
   agent_system_uuid_preset UUID NOT NULL UNIQUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP DEFAULT NULL,
   FOREIGN KEY (agent_system_uuid_preset) REFERENCES agent_systems(agent_system_uuid)
 );
 
@@ -77,7 +75,9 @@ CREATE TABLE agents (
   description VARCHAR(512),
   agent_config_uuid UUID NOT NULL UNIQUE,
   auth_uuid UUID NOT NULL,   -- reference to auths
-  creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP DEFAULT NULL
   FOREIGN KEY (agent_config_uuid) REFERENCES agents_config(agent_config_uuid) ON DELETE CASCADE,
   FOREIGN KEY (auth_uuid) REFERENCES auths(auth_uuid) ON DELETE CASCADE
 );
