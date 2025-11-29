@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"fmt"
 )
 
 type AuthService struct {
@@ -19,18 +20,22 @@ func NewAuthService(repo auitf.AuthRepositoryITF) auitf.AuthServiceITF {
 	return &AuthService{r: repo}
 }
 
-func (s *AuthService) Create(data *d.Auth) func(*gin.Context) {
+func (s *AuthService) Create(gctx *gin.Context, data *d.Auth) error {
 	hashedPass := a_at.HashPassAtom(data.Password)
 	data.Password = hashedPass
 
-	return s.r.Create(data)
+	if err := s.r.Create(gctx, data); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *AuthService) Comparate(data *d.Auth) func(*gin.Context) {
+func (s *AuthService) Comparate(gctx *gin.Context, data *d.Auth) error {
 	auth := &d.Auth{}
 	auth.Email = data.Email
 
-	err := s.r.GetByEmail(auth)
+	err := s.r.GetByEmail(gctx, auth)
 	if err != nil {
 		return err
 	}
@@ -38,26 +43,27 @@ func (s *AuthService) Comparate(data *d.Auth) func(*gin.Context) {
 	hashedTriedPass := a_at.HashPassAtom(data.Password)
 
 	if hashedTriedPass != auth.Password {
-		return c_at.RespFuncAbortAtom(
+		c_at.AbortRespAtom(gctx,
 			http.StatusUnauthorized,
 			"(S) Invalid credentials.")
+		return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Incorrect password of %s", auth.Email))
 	}
 
 	return nil
 }
 
-func (s *AuthService) GetByID(data *d.Auth) func(*gin.Context) {
-	return s.r.GetByID(data)
+func (s *AuthService) GetByID(gctx *gin.Context, data *d.Auth) error {
+	return s.r.GetByID(gctx, data)
 }
 
-func (s *AuthService) Fetch(limit, offset int) ([]d.Auth, func(*gin.Context)) {
-	return s.r.Fetch(limit, offset)
+func (s *AuthService) Fetch(gctx *gin.Context, limit, offset int) ([]d.Auth, error) {
+	return s.r.Fetch(gctx, limit, offset)
 }
 
-func (s *AuthService) Update(data *d.Auth) func(*gin.Context) {
-	return s.r.Update(data)
+func (s *AuthService) Update(gctx *gin.Context, data *d.Auth) error {
+	return s.r.Update(gctx, data)
 }
 
-func (s *AuthService) Delete(data *d.Auth) func(*gin.Context) {
-	return s.r.Delete(data)
+func (s *AuthService) Delete(gctx *gin.Context, data *d.Auth) error {
+	return s.r.Delete(gctx, data)
 }

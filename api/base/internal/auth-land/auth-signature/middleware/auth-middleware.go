@@ -31,6 +31,8 @@ func AuthMiddleware() gin.HandlerFunc {
 				http.StatusUnauthorized,
 				"(M) Missing token.",
 			)
+			err = c_at.BuildErrLogAtom(gctx, "Missing token")
+			c_at.FeedErrLogToFile(err)
 			return
 		}
 
@@ -44,6 +46,8 @@ func AuthMiddleware() gin.HandlerFunc {
 				http.StatusUnauthorized,
 				"(M) Invalid token.",
 			)
+			err = c_at.BuildErrLogAtom(gctx, "Invalid token")
+			c_at.FeedErrLogToFile(err)
 			return
 		}
 		gctx.Set("email", claims.UUID)
@@ -61,6 +65,8 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 				http.StatusForbidden,
 				"(M) Insufficient role.",
 			)
+			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
+			c_at.FeedErrLogToFile(err)
 			return
 		}
 
@@ -70,6 +76,8 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 				http.StatusForbidden,
 				"(M) Insufficient role.",
 			)
+			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
+			c_at.FeedErrLogToFile(err)
 			return
 		}
 
@@ -77,7 +85,7 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 	}
 }
 
-func GenerateJWT(c *Claims, useRefresh bool) (string, func(*gin.Context)) {
+func GenerateJWT(gctx *gin.Context, c *Claims, useRefresh bool) (string, error) {
 	now := time.Now()
 
 	var ttl time.Duration
@@ -97,10 +105,13 @@ func GenerateJWT(c *Claims, useRefresh bool) (string, func(*gin.Context)) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 	signedStr, err := token.SignedString(secret)
 	if err != nil {
-		return "", c_at.RespFuncAbortAtom(
+		c_at.AbortRespAtom(
+			gctx,
 			http.StatusInternalServerError,
 			"(M) Could not generate token.",
 		)
+		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
+		return "", err
 	}
 
 	return signedStr, nil

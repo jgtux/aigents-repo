@@ -3,6 +3,7 @@ package atoms
 import (
 	"os"
 	"log"
+	"fmt"
 	"time"
 	"strconv"
 	"github.com/gin-gonic/gin"
@@ -22,13 +23,14 @@ func AbortRespAtom(gctx *gin.Context, code int, msg string) {
 	})
 }
 
-func RespFuncAbortAtom(code int, msg string) func(*gin.Context) {
-	return func(gctx *gin.Context) {
-		gctx.AbortWithStatusJSON(code, map[string]any{
-			"status": code,
-			"error": msg,
-		})
-	}
+func BuildErrLogAtom(gctx *gin.Context, msg string) error {
+	return fmt.Errorf(
+		"[ERR LOG] %s | IP: %s | UA: %s | P: %s -> %s",
+		time.Now().Format("2006-01-02 15:04:05"),
+		gctx.ClientIP(),
+		gctx.Request.UserAgent(),
+		gctx.FullPath(),
+	msg)
 }
 
 func ParseEnvMinutesAtom(eVar string, fallback int) time.Duration {
@@ -43,4 +45,28 @@ func ParseEnvMinutesAtom(eVar string, fallback int) time.Duration {
 	}
 
 	return time.Duration(val) * time.Minute
+}
+
+func FeedErrLogToFile(err error) {
+	if err == nil {
+		return
+	}
+
+	spath := os.Getenv("ERR_LOG_FPATH")
+	if spath == "" {
+		spath = "ERR_LOG"
+	}
+
+	f, openErr := os.OpenFile(spath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if openErr != nil {
+		log.Fatalf("failed to open error log file: %w", openErr)
+		return
+	}
+	defer f.Close()
+
+	_, writeErr := f.WriteString(err.Error() + "\n")
+	if writeErr != nil {
+		log.Fatalf("failed to write to error log file: %w", writeErr)
+		return
+	}
 }

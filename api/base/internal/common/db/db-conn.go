@@ -31,13 +31,13 @@ func Init() {
 	var err error
 	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("❌ Error opening database: %v", err)
+		log.Fatalf("Error opening database: %v", err)
 	}
 
 	if err = DB.Ping(); err != nil {
-		log.Fatalf("❌ Error connecting to database: %v", err)
+		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	log.Println("✅ Connected to PostgreSQL database")
+	log.Println("Connected to PostgreSQL database")
 }
 

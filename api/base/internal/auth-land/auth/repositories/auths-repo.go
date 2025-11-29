@@ -21,7 +21,7 @@ func NewAuthRepository(db *sql.DB) auitf.AuthRepositoryITF {
 	return &AuthRepository{db: db}
 }
 
-func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
+func (a *AuthRepository) Create(gctx *gin.Context, data *d.Auth) error {
 	query := `
 		INSERT INTO auths (
 			email,
@@ -40,23 +40,27 @@ func (a *AuthRepository) Create(data *d.Auth) func(*gin.Context) {
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" {
-				return c_at.RespFuncAbortAtom(
+				c_at.AbortRespAtom(
+					gctx,
 					http.StatusConflict,
 					"(R) Email already registered.",
 				)
+				return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Email %s already registred", data.Email))
 			}
 		}
 
-		return c_at.RespFuncAbortAtom(
+		c_at.AbortRespAtom(
+			gctx,
 			http.StatusInternalServerError,
 			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
 		)
+		return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: ", err.Error()))
 	}
 
 	return nil
 }
 
-func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
+func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 	query := `SELECT auth_uuid,
                          password,
                          created_at,
@@ -75,31 +79,36 @@ func (a *AuthRepository) GetByEmail(data *d.Auth) func(*gin.Context) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c_at.RespFuncAbortAtom(
+			c_at.AbortRespAtom(
+				gctx,
 				http.StatusUnauthorized,
 				"(R) Authentication not found.")
-		} 
-		return c_at.RespFuncAbortAtom(
+			return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Email %s not found", data.Email))
+		}
+
+		c_at.AbortRespAtom(
+			gctx,
 			http.StatusInternalServerError,
 			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
 		)
+		return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: ", err.Error()))
 	}
 
 	return nil
 }
 
-func (a *AuthRepository) GetByID(data *d.Auth) func(*gin.Context) {
+func (a *AuthRepository) GetByID(gctx *gin.Context, data *d.Auth) error {
 
 	return nil
 }
-func (a *AuthRepository) Fetch(limit, offset int) ([]d.Auth, func(*gin.Context)) {
+func (a *AuthRepository) Fetch(gctx *gin.Context, limit, offset int) ([]d.Auth, error) {
 	return []d.Auth{}, nil
 }
 
-func (a *AuthRepository) Update(data *d.Auth) func(*gin.Context) {
+func (a *AuthRepository) Update(gctx *gin.Context, data *d.Auth) error {
 	return nil
 }
 
-func (a *AuthRepository) Delete(data *d.Auth) func(*gin.Context) {
+func (a *AuthRepository) Delete(gctx *gin.Context, data *d.Auth) error {
 	return nil
 }

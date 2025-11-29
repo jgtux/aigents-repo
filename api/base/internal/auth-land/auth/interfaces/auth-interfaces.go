@@ -9,10 +9,10 @@ import (
 
 type AuthServiceITF interface {
 	citf.Common[d.Auth]
-	Comparate(data *d.Auth) func(*gin.Context)
+	Comparate(gctx *gin.Context, data *d.Auth) error
 }
 
 type AuthRepositoryITF interface {
 	citf.Common[d.Auth]
-	GetByEmail(data *d.Auth) func(*gin.Context)
+	GetByEmail(gctx *gin.Context, data *d.Auth) error
 }

@@ -7,7 +7,7 @@ import (
 	as "aigents-base/internal/auth-land/auth/services"
 	ar "aigents-base/internal/auth-land/auth/repositories"
 
-	"github.com/gin-contrib/cors"	
+	"github.com/gin-contrib/cors"
 	"time"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,6 @@ func main() {
 		AllowCredentials: true, // if you need cookies/auth
 		MaxAge:           12 * time.Hour,
 	}))
-	
 
 	api := r.Group("/api/v1")
 

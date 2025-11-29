@@ -5,9 +5,9 @@ import (
 )
 
 type Common[T any] interface {
-	Create(data *T) func(*gin.Context)
-	GetByID(data *T) func(*gin.Context)
-	Fetch(limit, offset int) ([]T, func(*gin.Context))
-	Update(data *T) func(*gin.Context)
-	Delete(data *T) func(*gin.Context)
+	Create(gctx *gin.Context, data *T) error
+	GetByID(gctx *gin.Context, data *T) error
+	Fetch(gctx *gin.Context, limit, offset int) ([]T, error)
+	Update(gctx *gin.Context, data *T) error
+	Delete(gctx *gin.Context, data *T) error
 }
