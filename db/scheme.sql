@@ -37,7 +37,7 @@ CREATE TABLE auths (
 -- ============================================================
 CREATE TABLE agent_systems (
   agent_system_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  category_system_preset JSONB NOT NULL,
+  system_preset JSONB NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -71,8 +71,9 @@ CREATE TABLE agents_config (
 -- ============================================================
 CREATE TABLE agents (
   agent_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(128) NOT NULL,
   description VARCHAR(512),
+  image_url VARCHAR(512)
   agent_config_uuid UUID NOT NULL UNIQUE,
   auth_uuid UUID NOT NULL,   -- reference to auths
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

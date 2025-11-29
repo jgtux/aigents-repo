@@ -4,36 +4,25 @@ import (
 	"time"
 )
 
-
-package domain
-
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
-
-
-
 type AgentSystem struct {
 	AgentSystemUUID     string        `json:"agent_system_uuid"`
-	CategorySystemPreset map[string]any   `json:"category_system_preset"`
+	SystemPreset map[string]any   `json:"system_preset"`
 	UpdatedAt           time.Time        `json:"updated_at"`
 }
 
 type AgentCategory struct {
 	CategoryID            int        `json:"category_id"`
 	CategoryName          string     `json:"category_name"`
-	AgentSystemUUIDPreset map[string]AgentSystem  `json:"agent_system_uuid_preset"`
+	AgentSystemPreset AgentSystem  `json:"agent_system_preset"`
 	CreatedAt             time.Time  `json:"created_at"`
 }
 
 
 type AgentConfig struct {
-	AgentConfigUUID     uuid.UUID `json:"agent_config_uuid"`
-	CategoryID          map[int]AgentCategory `json:"category_id"`
+	AgentConfigUUID    string `json:"agent_config_uuid"`
+	Category          AgentCategory `json:"agent_category"`
 	CategoryPresetEnabled bool    `json:"category_preset_enabled"`
-	AgentSystemUUID     map[string]AgentSystem `json:"agent_system_uuid"`
+	AgentSystem     AgentSystem `json:"agent_system"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }
@@ -44,7 +33,8 @@ type Agent struct {
 	AgentUUID       string `json:"agent_uuid"`
 	Name            string    `json:"name"`
 	Description     string    `json:"description"`
-	AgentConfigUUID map[string]AgentConfig `json:"agent_config_uuid"`
+        ImageURL        string   `json:"image_url"`
+	AgentConfig     AgentConfig `json:"agent_config"`
 	AuthUUID        string `json:"auth_uuid"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`

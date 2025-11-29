@@ -56,7 +56,7 @@ func (s *AuthService) GetByID(gctx *gin.Context, data *d.Auth) error {
 	return s.r.GetByID(gctx, data)
 }
 
-func (s *AuthService) Fetch(gctx *gin.Context, limit, offset int) ([]d.Auth, error) {
+func (s *AuthService) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Auth, error) {
 	return s.r.Fetch(gctx, limit, offset)
 }
 

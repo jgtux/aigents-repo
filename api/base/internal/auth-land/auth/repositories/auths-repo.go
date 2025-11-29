@@ -91,7 +91,7 @@ func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 			http.StatusInternalServerError,
 			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
 		)
-		return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: ", err.Error()))
+		return c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: %s", err.Error()))
 	}
 
 	return nil
@@ -101,7 +101,7 @@ func (a *AuthRepository) GetByID(gctx *gin.Context, data *d.Auth) error {
 
 	return nil
 }
-func (a *AuthRepository) Fetch(gctx *gin.Context, limit, offset int) ([]d.Auth, error) {
+func (a *AuthRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Auth, error) {
 	return []d.Auth{}, nil
 }
 

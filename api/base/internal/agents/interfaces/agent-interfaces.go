@@ -14,5 +14,5 @@ type AgentServiceITF interface {
 
 type AgentRepositoryITF interface {
 	citf.Common[d.Agent]
-	FetchWithFilter(gctx *gin.Context, flags []string) ([]d.Agent, error)
+	FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error)
 }

@@ -1,0 +1,99 @@
+
+package repositories
+
+import (
+	d "aigents-base/internal/agents/domain"
+	agitf "aigents-base/internal/agents/interfaces"
+	c_at "aigents-base/internal/common/atoms"
+	"fmt"
+
+	"database/sql"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+)
+
+type AgentRepository struct {
+	db *sql.DB
+}
+
+func NewAgentRepository(db *sql.DB) agitf.AgentRepositoryITF {
+	return &AgentRepository{db: db}
+}
+
+
+func (r *AgentRepository) Create(gctx *gin.Context, data *d.Agent) error {
+	query := `
+	WITH ins_system AS (
+		INSERT INTO agent_systems (category_system_preset)
+		VALUES ($1)
+		RETURNING agent_system_uuid
+	),
+	ins_config AS (
+		INSERT INTO agents_config (
+			category_id,
+			category_preset_enabled,
+			agent_system_uuid
+		)
+		VALUES ($2, $3, (SELECT agent_system_uuid FROM ins_system))
+		RETURNING agent_config_uuid
+	)
+	INSERT INTO agents (
+		name,
+		description,
+		image_url,
+		agent_config_uuid,
+		auth_uuid
+	)
+	VALUES ($4, $5, $6, (SELECT agent_config_uuid FROM ins_config), $7)
+	RETURNING agent_uuid, created_at, updated_at, COALESCE(deleted_at, NULL);
+	`
+
+	err := r.db.QueryRow(
+		query,
+		data.AgentConfig.AgentSystem.CategorySystemPreset, // $1
+		data.AgentConfig.Category.CategoryID,                        // $2
+		data.AgentConfig.CategoryPresetEnabled,            // $3
+		data.Name,                                         // $4
+		data.Description,                                  // $5
+		data.ImageURL,                                     // $6
+		data.AuthUUID,                                     // $7
+	).Scan(
+		&data.AgentUUID,
+		&data.CreatedAt,
+		&data.UpdatedAt,
+		&data.DeletedAt,
+	)
+
+	if err != nil {
+		c_at.AbortRespAtom(
+			gctx,
+			http.StatusInternalServerError,
+			fmt.Sprintf("(R) Failed to create agent: %s", err.Error()),
+		)
+
+		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("(R) Failed to create agent: %s", err.Error()))
+		return err
+	}
+
+	return nil
+}
+
+func (a *AgentRepository) GetByID(gctx *gin.Context, data *d.Agent) error {
+
+	return nil
+}
+func (a *AgentRepository) Fetch(gctx *gin.Context, limit, offset int) ([]d.Agent, error) {
+	return []d.Agent{}, nil
+}
+
+FetchWithFilter(gctx *gin.Context, flags []string, limit, offset int) ([]d.Agent, error)
+
+func (a *AgentRepository) Update(gctx *gin.Context, data *d.Agent) error {
+	return nil
+}
+
+func (a *AgentRepository) Delete(gctx *gin.Context, data *d.Agent) error {
+	return nil
+}
