@@ -57,7 +57,7 @@ func (a *AuthRepository) Create(gctx *gin.Context, data *d.Auth) error {
 		c_at.AbortRespAtom(
 			gctx,
 			http.StatusInternalServerError,
-			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
+			"(R) Could not register authentication.",
 		)
 		return err
 	}
@@ -98,7 +98,7 @@ func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 		c_at.AbortRespAtom(
 			gctx,
 			http.StatusInternalServerError,
-			fmt.Sprintf("(R) An unknown error occurred: %s", err.Error()),
+			"(R) Could not get email from database.",
 		)
 		return err
 	}
