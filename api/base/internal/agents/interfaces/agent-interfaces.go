@@ -9,7 +9,7 @@ import (
 
 type AgentServiceITF interface {
 	citf.Common[d.Agent]
-	Search(gctx *gin.Context, flags []string) ([]d.Agent, error)
+	FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error)
 }
 
 type AgentRepositoryITF interface {

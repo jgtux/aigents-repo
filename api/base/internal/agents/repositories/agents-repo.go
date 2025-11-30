@@ -66,12 +66,11 @@ func (r *AgentRepository) Create(gctx *gin.Context, data *d.Agent) error {
 	)
 
 	if err != nil {
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Failed to create agent: %s", err.Error()))
-		c_at.AbortRespAtom(
+		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusInternalServerError,
 			"(R) Could not create agent.",
-		)
+			fmt.Sprintf("Failed to create agent: %s", err.Error()))
 
 		return err
 	}
@@ -107,12 +106,11 @@ func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Ag
 
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Failed to fetch agents: %s", err.Error()))
-		c_at.AbortRespAtom(
+		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusInternalServerError,
 			"(R) Could not fetch agents.",
-		)
+			fmt.Sprintf("Failed to fetch agents: %s", err.Error()))
 		return nil, err
 	}
 	defer rows.Close()
@@ -135,12 +133,11 @@ func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Ag
 			&agent.DeletedAt,
 		)
 		if err != nil {
-			err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Failed to scan agent: %s", err.Error()))
-			c_at.AbortRespAtom(
+			err = c_at.AbortAndBuildErrLogAtom(
 				gctx,
 				http.StatusInternalServerError,
-				"(R) Could not fetch agents",
-			)
+				"(R) Could not fetch agents.",
+				fmt.Sprintf("Failed to scan agent: %s", err.Error()))
 			return nil, err
 		}
 
@@ -148,12 +145,11 @@ func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Ag
 	}
 
 	if err = rows.Err(); err != nil {
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Row iteration error: %s", err.Error()))
-		c_at.AbortRespAtom(
-			gctx,
-			http.StatusInternalServerError,
-			"(R) Could not fetch agents.",
-		)
+		err = c_at.AbortAndBuildErrLogAtom(
+				gctx,
+				http.StatusInternalServerError,
+				"(R) Could not fetch agents.",
+				fmt.Sprintf("Row iteration failed: %s", err.Error()))
 
 		return nil, err
 	}
