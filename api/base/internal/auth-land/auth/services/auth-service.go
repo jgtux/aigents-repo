@@ -43,11 +43,12 @@ func (s *AuthService) Comparate(gctx *gin.Context, data *d.Auth) error {
 	hashedTriedPass := a_at.HashPassAtom(data.Password)
 
 	if hashedTriedPass != auth.Password {
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Incorrect password of %s", auth.Email))
-		c_at.AbortRespAtom(gctx,
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
 			http.StatusUnauthorized,
-			"(S) Invalid credentials.")
-		return err 
+			"(S) Invalid credentials.",
+			fmt.Sprintf("Incorrect password of %s", auth.Email))
+		return err
 	}
 
 	return nil

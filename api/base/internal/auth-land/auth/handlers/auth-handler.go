@@ -26,8 +26,11 @@ func (h *AuthHandler) Create(gctx *gin.Context) {
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		err = c_at.BuildErrLogAtom(gctx, "Invalid body request")
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusBadRequest,
+			"(H) Invalid body request or values.",
+			"Invalid body request")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -48,8 +51,11 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		err = c_at.BuildErrLogAtom(gctx, "Invalid body request")
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusBadRequest,
+			"(H) Invalid body request or values.",
+			"Invalid body request")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -83,8 +89,11 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	refreshToken, err := gctx.Cookie("refresh_token")
 	if err != nil {
-		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
-		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(H) Missing refresh token.")
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Missing refresh token.",
+			"Missing refresh token")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -95,8 +104,11 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	})
 
 	if err != nil || !token.Valid {
-		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
-		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(M) Invalid refresh token.")
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Invalid refresh token.",
+			"Invalid refresh token")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -112,14 +124,18 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	c_at.RespAtom(gctx, http.StatusOK, "(*) Access token refreshed.")
 }
 
-func (h *AuthHandler) GetByID(gctx *gin.Context) {
+func (h *AuthHandler) GetByID(gctx *gin.Context) error {
+	return nil
 }
 
-func (h *AuthHandler) Fetch(gctx *gin.Context) {
+func (h *AuthHandler) Fetch(gctx *gin.Context) error  {
+	return nil
 }
 
-func (h *AuthHandler) Update(gctx *gin.Context, data *d.Auth) {
+func (h *AuthHandler) Update(gctx *gin.Context, data *d.Auth) error {
+	return nil
 }
 
-func (h *AuthHandler) Delete(gctx *gin.Context) {
+func (h *AuthHandler) Delete(gctx *gin.Context) error {
+	return nil
 }

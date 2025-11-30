@@ -16,6 +16,14 @@ func RespAtom(gctx *gin.Context, code int, msg string) {
 	})
 }
 
+
+
+func AbortAndBuildErrLogAtom(gctx *gin.Context, code int, abortMsg, logMsg string) error {
+	err := BuildErrLogAtom(gctx, logMsg)
+	AbortRespAtom(gctx, code, abortMsg)
+	return err
+}
+
 func AbortRespAtom(gctx *gin.Context, code int, msg string) {
 	gctx.AbortWithStatusJSON(code, map[string]any{
 		"status": code,

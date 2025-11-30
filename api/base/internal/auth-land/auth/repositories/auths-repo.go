@@ -40,25 +40,21 @@ func (a *AuthRepository) Create(gctx *gin.Context, data *d.Auth) error {
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" {
-
-				err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Email %s already registred", data.Email))
-				c_at.AbortRespAtom(
+				err = c_at.AbortAndBuildErrLogAtom(
 					gctx,
 					http.StatusConflict,
 					"(R) Email already registered.",
-				)
+					fmt.Sprintf("Email %s already registred", data.Email))
 				return err
 			}
 		}
 
 
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: ", err.Error()))
-
-		c_at.AbortRespAtom(
+		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusInternalServerError,
 			"(R) Could not register authentication.",
-		)
+			fmt.Sprintf("An unknown error ocurred: %s", err.Error()))
 		return err
 	}
 
@@ -84,22 +80,20 @@ func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Email %s not found", data.Email))
-			c_at.AbortRespAtom(
+			err = c_at.AbortAndBuildErrLogAtom(
 				gctx,
 				http.StatusUnauthorized,
-				"(R) Authentication not found.")
+				"(R) Authentication not found.",
+				fmt.Sprintf("Authentication of %s not found", data.Email))
 			return err
 		}
 
 
-		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("An unknown error ocurred: %s", err.Error()))
-
-		c_at.AbortRespAtom(
+		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusInternalServerError,
-			"(R) Could not get email from database.",
-		)
+			"(R) Could not find authentication.",
+			fmt.Sprintf("An unknown error ocurred: %s", err.Error()))
 		return err
 	}
 
