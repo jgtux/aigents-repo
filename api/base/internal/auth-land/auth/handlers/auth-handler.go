@@ -132,7 +132,7 @@ func (h *AuthHandler) Fetch(gctx *gin.Context) error  {
 	return nil
 }
 
-func (h *AuthHandler) Update(gctx *gin.Context, data *d.Auth) error {
+func (h *AuthHandler) Update(gctx *gin.Context) error {
 	return nil
 }
 
