@@ -4,6 +4,7 @@ import (
 	c_at "aigents-base/internal/common/atoms"
 
 	"os"
+	"fmt"
 	"net/http"
 	"time"
 	"github.com/gin-gonic/gin"
@@ -27,11 +28,11 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(gctx *gin.Context) {
 		tokenStr, err := gctx.Cookie("access_token")
 		if err != nil {
+			err = c_at.BuildErrLogAtom(gctx, "Missing token")
 			c_at.AbortRespAtom(gctx,
 				http.StatusUnauthorized,
 				"(M) Missing token.",
 			)
-			err = c_at.BuildErrLogAtom(gctx, "Missing token")
 			c_at.FeedErrLogToFile(err)
 			return
 		}
@@ -42,11 +43,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			err = c_at.BuildErrLogAtom(gctx, "Invalid token")
 			c_at.AbortRespAtom(gctx,
 				http.StatusUnauthorized,
 				"(M) Invalid token.",
 			)
-			err = c_at.BuildErrLogAtom(gctx, "Invalid token")
 			c_at.FeedErrLogToFile(err)
 			return
 		}
@@ -61,22 +62,22 @@ func AuthorizeRole(allowedRoles map[string]bool) gin.HandlerFunc {
 	return func(gctx *gin.Context) {
 		role, exists := gctx.Get("role")
 		if !exists {
+			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
 			c_at.AbortRespAtom(gctx,
 				http.StatusForbidden,
 				"(M) Insufficient role.",
 			)
-			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
 			c_at.FeedErrLogToFile(err)
 			return
 		}
 
 		roleStr, ok := role.(string)
 		if !ok || !allowedRoles[roleStr] {
+			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
 			c_at.AbortRespAtom(gctx,
 				http.StatusForbidden,
 				"(M) Insufficient role.",
 			)
-			err := c_at.BuildErrLogAtom(gctx, "Insufficient role")
 			c_at.FeedErrLogToFile(err)
 			return
 		}
@@ -105,12 +106,12 @@ func GenerateJWT(gctx *gin.Context, c *Claims, useRefresh bool) (string, error) 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 	signedStr, err := token.SignedString(secret)
 	if err != nil {
+		err = c_at.BuildErrLogAtom(gctx, fmt.Sprintf("Could not generate token: %s", err.Error()))
 		c_at.AbortRespAtom(
 			gctx,
 			http.StatusInternalServerError,
 			"(M) Could not generate token.",
 		)
-		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
 		return "", err
 	}
 

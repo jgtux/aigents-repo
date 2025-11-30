@@ -26,8 +26,8 @@ func (h *AuthHandler) Create(gctx *gin.Context) {
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		err = c_at.BuildErrLogAtom(gctx, "Invalid body request")
+		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -48,8 +48,8 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 	}
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
-		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		err = c_at.BuildErrLogAtom(gctx, "Invalid body request")
+		c_at.AbortRespAtom(gctx, http.StatusBadRequest, "(H) Invalid body request or values.")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -83,8 +83,8 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	refreshToken, err := gctx.Cookie("refresh_token")
 	if err != nil {
-		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(H) Missing refresh token.")
 		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
+		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(H) Missing refresh token.")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
@@ -95,7 +95,9 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	})
 
 	if err != nil || !token.Valid {
+		err = c_at.BuildErrLogAtom(gctx, "Missing refresh token")
 		c_at.AbortRespAtom(gctx, http.StatusUnauthorized, "(M) Invalid refresh token.")
+		c_at.FeedErrLogToFile(err)
 		return
 	}
 
