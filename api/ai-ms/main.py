@@ -8,7 +8,7 @@ import json
 import websockets
 from dotenv import load_dotenv
 
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.callbacks import AsyncCallbackHandler
 
@@ -20,9 +20,9 @@ load_dotenv()
 # ==========================
 # Config
 # ==========================
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not found in environment variables")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY not found in environment variables")
 
 # WebSocket configuration
 WS_HOST = os.getenv("WS_HOST", "localhost")
@@ -37,7 +37,7 @@ MAX_CHAT_MESSAGES = int(os.getenv("MAX_CHAT_MESSAGES", "200"))  # Maximum messag
 MAX_CHAT_TOKENS = int(os.getenv("MAX_CHAT_TOKENS", "50000"))  # Maximum estimated tokens per chat
 
 # LLM configuration
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")  # Default Groq model
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2000"))
 
@@ -481,13 +481,13 @@ chat_cache = ChatCache(
     max_chat_tokens=MAX_CHAT_TOKENS
 )
 
-# Initialize LangChain LLM
-llm = ChatOpenAI(
+# Initialize LangChain LLM with Groq
+llm = ChatGroq(
     model=LLM_MODEL,
     temperature=LLM_TEMPERATURE,
     max_tokens=LLM_MAX_TOKENS,
     streaming=True,
-    api_key=OPENAI_API_KEY
+    api_key=GROQ_API_KEY
 )
 
 async def handle_connection(websocket):
@@ -570,7 +570,7 @@ async def handle_connection(websocket):
             # 5️⃣ Create streaming callback
             callback = WebSocketStreamingCallback(websocket, chat_uuid, agent.agent_uuid)
 
-            # 6️⃣ Stream LLM response using LangChain
+            # 6️⃣ Stream LLM response using LangChain with Groq
             try:
                 response = await llm.ainvoke(
                     messages,
@@ -617,15 +617,15 @@ async def handle_connection(websocket):
 async def main():
     """Start WebSocket server"""
     async with websockets.serve(handle_connection, WS_HOST, WS_PORT):
-        print(f" WebSocket LLM server running on ws://{WS_HOST}:{WS_PORT}")
-        print(f" Using model: {LLM_MODEL}")
-        print(f"️  Temperature: {LLM_TEMPERATURE}")
-        print(f" Max agent cache: {MAX_AGENT_CACHE_SIZE}")
-        print(f" Max chat cache: {MAX_CHAT_CACHE_SIZE}")
-        print(f" Max messages per chat: {MAX_CHAT_MESSAGES}")
-        print(f" Max tokens per chat: {MAX_CHAT_TOKENS}")
-        print(f" Context window: {MAX_CONTEXT_MESSAGES} messages")
-        print(f" Ready to handle agent requests...")
+        print(f"WebSocket LLM server running on ws://{WS_HOST}:{WS_PORT}")
+        print(f"Using Groq model: {LLM_MODEL}")
+        print(f"Temperature: {LLM_TEMPERATURE}")
+        print(f"Max agent cache: {MAX_AGENT_CACHE_SIZE}")
+        print(f"Max chat cache: {MAX_CHAT_CACHE_SIZE}")
+        print(f"Max messages per chat: {MAX_CHAT_MESSAGES}")
+        print(f"Max tokens per chat: {MAX_CHAT_TOKENS}")
+        print(f"Context window: {MAX_CONTEXT_MESSAGES} messages")
+        print(f"Ready to handle agent requests...")
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
