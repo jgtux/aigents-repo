@@ -9,14 +9,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RespAtom(gctx *gin.Context, code int, msg string) {
-	gctx.JSON(code, map[string]any{
-		"status": code,
-		"message": msg,
-	})
+type Response[T any] struct {
+	Status    int    `json:"status"`
+	Message   string `json:"message"`
+	Data      T      `json:"data,omitempty"`
 }
 
+func RespAtom[T any](
+	gctx *gin.Context,
+	code int,
+	msg string,
+	data T,
+) {
+	resp := Response[T]{
+		Status:  code,
+		Message: msg,
+		Data: data,
+	}
 
+	gctx.JSON(code, resp)
+}
 
 func AbortAndBuildErrLogAtom(gctx *gin.Context, code int, abortMsg, logMsg string) error {
 	err := BuildErrLogAtom(gctx, logMsg)

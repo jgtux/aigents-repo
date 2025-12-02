@@ -22,7 +22,7 @@ func NewAuthService(repo agitf.AgentRepositoryITF) agitf.AgentServiceITF {
 }
 
 func (s *AgentService) Create(gctx *gin.Context, data *d.Agent) error {
-	return nil
+	return s.r.Create(gctx, data)
 }
 
 func (a *AgentService) FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error) {

@@ -153,7 +153,7 @@ func (r *AgentRepository) GetByID(gctx *gin.Context, data *d.Agent) error {
 	return nil
 }
 
-
+// without system
 func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Agent, error) {
 	query := `
 	SELECT
