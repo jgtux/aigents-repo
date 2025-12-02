@@ -32,40 +32,28 @@ WS_PORT = int(os.getenv("WS_PORT", "8765"))
 MAX_AGENT_CACHE_SIZE = int(os.getenv("MAX_AGENT_CACHE_SIZE", "50"))
 
 # Chat cache configuration
-MAX_CHAT_CACHE_SIZE = int(os.getenv("MAX_CHAT_CACHE_SIZE", "100"))  # Maximum number of chats in memory
-MAX_CHAT_MESSAGES = int(os.getenv("MAX_CHAT_MESSAGES", "200"))  # Maximum messages per chat before eviction
-MAX_CHAT_TOKENS = int(os.getenv("MAX_CHAT_TOKENS", "50000"))  # Maximum estimated tokens per chat
+MAX_CHAT_CACHE_SIZE = int(os.getenv("MAX_CHAT_CACHE_SIZE", "100"))
+MAX_CHAT_MESSAGES = int(os.getenv("MAX_CHAT_MESSAGES", "200"))
+MAX_CHAT_TOKENS = int(os.getenv("MAX_CHAT_TOKENS", "50000"))
 
 # LLM configuration
-LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")  # Default Groq model
+LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.3-70b-versatile")
 LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "2000"))
 
 # Context window management
-MAX_CONTEXT_MESSAGES = int(os.getenv("MAX_CONTEXT_MESSAGES", "20"))  # Keep last N messages
-CONTEXT_STRATEGY = os.getenv("CONTEXT_STRATEGY", "sliding_window")  # sliding_window or token_based
+MAX_CONTEXT_MESSAGES = int(os.getenv("MAX_CONTEXT_MESSAGES", "20"))
+CONTEXT_STRATEGY = os.getenv("CONTEXT_STRATEGY", "sliding_window")
 
 # ==========================
-# Data Models (matching SQL schema)
+# Data Models
 # ==========================
 class AgentSystem:
     """Represents agent_systems table"""
     def __init__(self, agent_system_uuid: str, category_system_preset: dict):
         self.agent_system_uuid = agent_system_uuid
-        self.category_system_preset = category_system_preset  # JSONB
+        self.category_system_preset = category_system_preset
         self.updated_at = time.time()
-
-
-class AgentCategory:
-    """Represents agent_categories table"""
-    def __init__(self, category_id: int, category_name: str, 
-                 agent_system_uuid_preset: str):
-        self.category_id = category_id
-        self.category_name = category_name
-        self.agent_system_uuid_preset = agent_system_uuid_preset
-        self.created_at = time.time()
-        self.updated_at = time.time()
-        self.deleted_at = None
 
 
 class AgentConfig:
@@ -127,39 +115,56 @@ class Chat:
         self.updated_at = time.time()
 
 
-class MessageContent:
-    """Represents message_contents table"""
-    def __init__(self, message_content_uuid: str, message_content: str):
-        self.message_content_uuid = message_content_uuid
-        self.message_content = message_content
-
-
 class Message:
     """Represents messages table"""
     def __init__(self, message_uuid: str, sender_uuid: str, sender_type: str,
                  receiver_uuid: str, receiver_type: str,
-                 chat_uuid: str, message_content_uuid: str, content: str):
+                 chat_uuid: str, message_content_uuid: str, content: str,
+                 created_at: float = None):
         self.message_uuid = message_uuid
         self.sender_uuid = sender_uuid
-        self.sender_type = sender_type  # 'AUTH' or 'AGENT' (entity_type_enum)
+        self.sender_type = sender_type  # 'AUTH' or 'AGENT'
         self.receiver_uuid = receiver_uuid
-        self.receiver_type = receiver_type  # 'AUTH' or 'AGENT'
+        self.receiver_type = receiver_type
         self.chat_uuid = chat_uuid
         self.message_content_uuid = message_content_uuid
-        self.content = content  # Denormalized for cache efficiency
-        self.created_at = time.time()
+        self.content = content
+        self.created_at = created_at or time.time()
 
 
 class ChatSession:
-    """In-memory representation of a chat with its messages (cache layer)"""
+    """In-memory representation of a chat with its messages"""
     def __init__(self, chat: Chat):
         self.chat = chat
         self.messages: List[Message] = []
+        self.last_message_count = 0  # Track for incremental updates
     
     def add_message(self, msg: Message):
         """Add a message to this chat session"""
         self.messages.append(msg)
         self.chat.touch()
+    
+    def load_history(self, messages: List[Message]):
+        """Load full message history (for cache miss or re-init)"""
+        self.messages = sorted(messages, key=lambda m: m.created_at)
+        self.last_message_count = len(self.messages)
+        self.chat.touch()
+        print(f"[Chat Cache] Loaded {len(messages)} messages for chat {self.chat.chat_uuid[:8]}...")
+    
+    def append_incremental(self, new_messages: List[Message]):
+        """Append only new messages (for incremental updates)"""
+        if new_messages:
+            self.messages.extend(new_messages)
+            self.last_message_count = len(self.messages)
+            self.chat.touch()
+            print(f"[Chat Cache] Added {len(new_messages)} incremental messages to {self.chat.chat_uuid[:8]}...")
+    
+    def needs_full_reload(self, incoming_message_count: int) -> bool:
+        """Determine if we need full history from API"""
+        # If incoming count is less than cache, chat was modified elsewhere
+        # If incoming count is much greater, we're missing messages
+        return (incoming_message_count < self.last_message_count or 
+                incoming_message_count > self.last_message_count + 10)
     
     def get_recent_messages(self, limit: int) -> List[Message]:
         """Get the most recent N messages"""
@@ -168,7 +173,7 @@ class ChatSession:
     def get_stats(self) -> dict:
         """Get statistics about this chat session"""
         total_chars = sum(len(m.content) for m in self.messages)
-        estimated_tokens = total_chars // 4  # Rough estimate
+        estimated_tokens = total_chars // 4
         return {
             "chat_uuid": self.chat.chat_uuid,
             "agent_uuid": self.chat.agent_uuid,
@@ -234,83 +239,133 @@ class AgentCache:
 
 
 # ==========================
-# Chat Cache (LRU with size limits)
+# Chat Cache (Smart LRU with incremental loading)
 # ==========================
 class ChatCache:
-    """LRU cache for chat sessions with size-based eviction"""
+    """LRU cache for chat sessions with incremental update support"""
     def __init__(self, max_cache_size: int = 100, max_context_messages: int = 20,
                  max_chat_messages: int = 200, max_chat_tokens: int = 50000):
-        self.cache: Dict[str, ChatSession] = OrderedDict()  # LRU cache
+        self.cache: Dict[str, ChatSession] = OrderedDict()
         self.max_cache_size = max_cache_size
         self.max_context_messages = max_context_messages
         self.max_chat_messages = max_chat_messages
         self.max_chat_tokens = max_chat_tokens
         
-        # Eviction statistics
         self.evictions = {
             "lru_evictions": 0,
             "size_evictions": 0,
             "total_evictions": 0
         }
+        
+        self.stats = {
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "full_reloads": 0,
+            "incremental_updates": 0
+        }
 
     def _evict_session(self, chat_uuid: str, reason: str):
-        """Evict a chat session from cache and log statistics"""
+        """Evict a chat session from cache"""
         if chat_uuid in self.cache:
             session = self.cache[chat_uuid]
             stats = session.get_stats()
             print(f"[Chat Cache] Evicted chat {chat_uuid[:8]}... ({reason}) - "
-                  f"{stats['total_messages']} messages, "
-                  f"~{stats['estimated_tokens']} tokens, "
-                  f"{stats['age_seconds']:.0f}s old")
+                  f"{stats['total_messages']} messages, ~{stats['estimated_tokens']} tokens")
             del self.cache[chat_uuid]
             self.evictions['total_evictions'] += 1
 
     def get_or_create_session(self, chat_uuid: str, agent_uuid: str, auth_uuid: str) -> ChatSession:
-        """Get existing session or create new one, with LRU eviction"""
+        """Get existing session or create new empty one"""
         if chat_uuid in self.cache:
-            # Move to end (most recently used)
             session = self.cache[chat_uuid]
             session.chat.touch()
             self.cache.move_to_end(chat_uuid)
+            self.stats['cache_hits'] += 1
             return session
         
-        # Create new chat session
+        # Cache miss - create new empty session
+        self.stats['cache_misses'] += 1
         chat = Chat(chat_uuid, agent_uuid, auth_uuid)
         session = ChatSession(chat)
         
-        # Check if we need to evict due to cache size limit
+        # LRU eviction if needed
         if len(self.cache) >= self.max_cache_size:
-            evicted_uuid = next(iter(self.cache))  # Get oldest (first) key
+            evicted_uuid = next(iter(self.cache))
             self._evict_session(evicted_uuid, "LRU cache full")
             self.evictions['lru_evictions'] += 1
         
         self.cache[chat_uuid] = session
         return session
 
-    def add_message(self, msg: Message, agent_uuid: str, auth_uuid: str):
-        """Add message to chat session"""
+    def sync_messages(self, chat_uuid: str, agent_uuid: str, auth_uuid: str,
+                     messages: List[dict], mode: str = "auto") -> ChatSession:
+        """
+        Sync messages from API to cache
+        
+        Modes:
+        - "auto": Automatically decide (incremental or full)
+        - "incremental": Only add new messages
+        - "full": Replace entire history
+        """
+        session = self.get_or_create_session(chat_uuid, agent_uuid, auth_uuid)
+        
+        # Convert dict messages to Message objects
+        msg_objects = [
+            Message(
+                m.get("message_uuid", str(uuid.uuid4())),
+                m["sender_uuid"],
+                m["sender_type"],
+                m["receiver_uuid"],
+                m["receiver_type"],
+                chat_uuid,
+                m.get("message_content_uuid", str(uuid.uuid4())),
+                m["content"],
+                m.get("created_at", time.time())
+            )
+            for m in messages
+        ]
+        
+        if mode == "auto":
+            # Decide based on cache state
+            if len(session.messages) == 0:
+                # Empty cache - do full load
+                session.load_history(msg_objects)
+                self.stats['full_reloads'] += 1
+            elif session.needs_full_reload(len(msg_objects)):
+                # Cache desync detected - full reload
+                print(f"[Chat Cache] Desync detected for {chat_uuid[:8]}... "
+                      f"(cache: {len(session.messages)}, incoming: {len(msg_objects)})")
+                session.load_history(msg_objects)
+                self.stats['full_reloads'] += 1
+            else:
+                # Incremental update - only add new messages
+                new_messages = msg_objects[len(session.messages):]
+                session.append_incremental(new_messages)
+                self.stats['incremental_updates'] += 1
+        elif mode == "full":
+            session.load_history(msg_objects)
+            self.stats['full_reloads'] += 1
+        elif mode == "incremental":
+            new_messages = msg_objects[len(session.messages):]
+            session.append_incremental(new_messages)
+            self.stats['incremental_updates'] += 1
+        
+        # Check for oversized session
+        if session.is_oversized(self.max_chat_messages, self.max_chat_tokens):
+            print(f"[Chat Cache] Warning: Oversized chat {chat_uuid[:8]}...")
+            self._evict_session(chat_uuid, "exceeded size limits")
+            self.evictions['size_evictions'] += 1
+            # Recreate with only recent messages
+            session = self.get_or_create_session(chat_uuid, agent_uuid, auth_uuid)
+            recent_messages = msg_objects[-self.max_context_messages:]
+            session.load_history(recent_messages)
+        
+        return session
+
+    def add_new_message(self, msg: Message, agent_uuid: str, auth_uuid: str):
+        """Add a single new message (for agent responses)"""
         session = self.get_or_create_session(msg.chat_uuid, agent_uuid, auth_uuid)
         session.add_message(msg)
-        
-        # Check if this session is now oversized and should be evicted
-        if session.is_oversized(self.max_chat_messages, self.max_chat_tokens):
-            stats = session.get_stats()
-            print(f"[Chat Cache] Warning: Chat {msg.chat_uuid[:8]}... is oversized "
-                  f"({stats['total_messages']} messages, ~{stats['estimated_tokens']} tokens)")
-            self._evict_session(msg.chat_uuid, "exceeded size limits")
-            self.evictions['size_evictions'] += 1
-            # Recreate the session with just this new message
-            session = self.get_or_create_session(msg.chat_uuid, agent_uuid, auth_uuid)
-            session.add_message(msg)
-
-    def get_recent_messages(self, chat_uuid: str, agent_uuid: str, 
-                           auth_uuid: str, limit: int = None) -> List[Message]:
-        """Get recent messages for a chat (sliding window)"""
-        if limit is None:
-            limit = self.max_context_messages
-        
-        session = self.get_or_create_session(chat_uuid, agent_uuid, auth_uuid)
-        return session.get_recent_messages(limit)
 
     def get_langchain_messages(self, chat_uuid: str, agent_uuid: str, 
                               auth_uuid: str, system_prompt: str, 
@@ -320,14 +375,13 @@ class ChatCache:
         
         session = self.get_or_create_session(chat_uuid, agent_uuid, auth_uuid)
         
-        # Get recent messages only (prevents context overflow)
         recent_msgs = (session.get_recent_messages(self.max_context_messages) 
                       if use_sliding_window else session.messages)
         
         for m in recent_msgs:
             if m.sender_type == "AGENT":
                 messages.append(AIMessage(content=m.content))
-            else:  # AUTH
+            else:
                 messages.append(HumanMessage(content=m.content))
         
         return messages
@@ -344,12 +398,15 @@ class ChatCache:
         total_messages = sum(len(s.messages) for s in self.cache.values())
         total_chars = sum(sum(len(m.content) for m in s.messages) for s in self.cache.values())
         
-        # Find largest session
         largest_session = None
         if self.cache:
             largest_session = max(self.cache.values(), 
                                 key=lambda s: s.get_stats()['estimated_tokens'])
             largest_stats = largest_session.get_stats()
+        
+        hit_rate = (self.stats['cache_hits'] / 
+                   (self.stats['cache_hits'] + self.stats['cache_misses']) * 100
+                   if (self.stats['cache_hits'] + self.stats['cache_misses']) > 0 else 0)
         
         return {
             "total_chats_in_cache": total_sessions,
@@ -359,6 +416,8 @@ class ChatCache:
             "total_characters": total_chars,
             "estimated_tokens": total_chars // 4,
             "avg_messages_per_chat": total_messages / total_sessions if total_sessions > 0 else 0,
+            "cache_hit_rate": f"{hit_rate:.1f}%",
+            "performance_stats": self.stats,
             "size_limits": {
                 "max_messages_per_chat": self.max_chat_messages,
                 "max_tokens_per_chat": self.max_chat_tokens,
@@ -384,7 +443,6 @@ class AgentManager:
     def create_agent(self, name: str, description: str, auth_uuid: str,
                     category_id: int = 1, system_prompt: str = None) -> Agent:
         """Create a new agent with full configuration"""
-        # Create agent system
         agent_system_uuid = str(uuid.uuid4())
         category_system_preset = {
             "system_prompt": system_prompt or "You are a helpful assistant.",
@@ -393,16 +451,14 @@ class AgentManager:
         }
         agent_system = AgentSystem(agent_system_uuid, category_system_preset)
         
-        # Create agent config
         agent_config_uuid = str(uuid.uuid4())
         agent_config = AgentConfig(
             agent_config_uuid,
             category_id,
-            True,  # category_preset_enabled
+            True,
             agent_system_uuid
         )
         
-        # Create agent
         agent_uuid = str(uuid.uuid4())
         agent = Agent(
             agent_uuid,
@@ -427,7 +483,6 @@ class AgentManager:
             if agent:
                 return agent
         
-        # Auto-create with provided details or defaults
         return self.create_agent(
             name or "Default Agent",
             description or "Auto-created agent",
@@ -481,7 +536,6 @@ chat_cache = ChatCache(
     max_chat_tokens=MAX_CHAT_TOKENS
 )
 
-# Initialize LangChain LLM with Groq
 llm = ChatGroq(
     model=LLM_MODEL,
     temperature=LLM_TEMPERATURE,
@@ -510,19 +564,23 @@ async def handle_connection(websocket):
             # Extract message data
             chat_uuid = data.get("chat_uuid")
             content = data.get("content")
-            sender_uuid = data.get("sender_uuid")  # auth_uuid
+            sender_uuid = data.get("sender_uuid")
             sender_type = data.get("sender_type", "AUTH")
-            receiver_uuid = data.get("receiver_uuid")  # agent_uuid
+            receiver_uuid = data.get("receiver_uuid")
             receiver_type = data.get("receiver_type", "AGENT")
             
-            # Agent creation/retrieval data
+            # Chat history sync (from API)
+            chat_history = data.get("chat_history", [])  # List of message dicts
+            sync_mode = data.get("sync_mode", "auto")  # auto, incremental, or full
+            
+            # Agent configuration
             agent_uuid = data.get("agent_uuid")
             agent_name = data.get("agent_name")
             agent_description = data.get("agent_description")
             category_id = data.get("category_id", 1)
             system_prompt = data.get("system_prompt")
             
-            # 1️⃣ Get or create agent with full configuration
+            # 1️⃣ Get or create agent
             agent = agent_manager.get_or_create(
                 agent_uuid=agent_uuid or receiver_uuid,
                 auth_uuid=sender_uuid,
@@ -532,7 +590,17 @@ async def handle_connection(websocket):
                 system_prompt=system_prompt
             )
 
-            # 2️⃣ Create user message
+            # 2️⃣ Sync chat history if provided (smart caching)
+            if chat_history:
+                chat_cache.sync_messages(
+                    chat_uuid,
+                    agent.agent_uuid,
+                    sender_uuid,
+                    chat_history,
+                    mode=sync_mode
+                )
+
+            # 3️⃣ Create and add user message
             message_uuid = str(uuid.uuid4())
             message_content_uuid = str(uuid.uuid4())
             user_msg = Message(
@@ -545,14 +613,12 @@ async def handle_connection(websocket):
                 message_content_uuid,
                 content
             )
-            
-            # Add to chat cache
-            chat_cache.add_message(user_msg, agent.agent_uuid, sender_uuid)
+            chat_cache.add_new_message(user_msg, agent.agent_uuid, sender_uuid)
 
-            # 3️⃣ Get system prompt from agent configuration
+            # 4️⃣ Get system prompt
             agent_system_prompt = agent.get_system_prompt()
 
-            # 4️⃣ Build LangChain message history (with sliding window)
+            # 5️⃣ Build LangChain messages
             messages = chat_cache.get_langchain_messages(
                 chat_uuid,
                 agent.agent_uuid,
@@ -561,23 +627,22 @@ async def handle_connection(websocket):
                 use_sliding_window=(CONTEXT_STRATEGY == "sliding_window")
             )
             
-            # Log context stats
+            # Log context
             stats = chat_cache.get_session_stats(chat_uuid)
             if stats:
                 print(f"[Chat {chat_uuid[:8]}...] Context: {len(messages)-1} messages, "
                       f"~{stats['estimated_tokens']} tokens")
 
-            # 5️⃣ Create streaming callback
+            # 6️⃣ Stream LLM response
             callback = WebSocketStreamingCallback(websocket, chat_uuid, agent.agent_uuid)
 
-            # 6️⃣ Stream LLM response using LangChain with Groq
             try:
                 response = await llm.ainvoke(
                     messages,
                     config={"callbacks": [callback]}
                 )
                 
-                # 7️⃣ Save agent response to chat cache
+                # 7️⃣ Save agent response
                 llm_message_uuid = str(uuid.uuid4())
                 llm_message_content_uuid = str(uuid.uuid4())
                 agent_msg = Message(
@@ -590,7 +655,7 @@ async def handle_connection(websocket):
                     llm_message_content_uuid,
                     callback.full_response
                 )
-                chat_cache.add_message(agent_msg, agent.agent_uuid, sender_uuid)
+                chat_cache.add_new_message(agent_msg, agent.agent_uuid, sender_uuid)
                 
                 print(f"[Chat {chat_uuid[:8]}...] Agent '{agent.name}' responded "
                       f"({len(callback.full_response)} chars)")
@@ -619,14 +684,14 @@ async def main():
     async with websockets.serve(handle_connection, WS_HOST, WS_PORT):
         print(f"WebSocket LLM server running on ws://{WS_HOST}:{WS_PORT}")
         print(f"Using Groq model: {LLM_MODEL}")
-        print(f"Temperature: {LLM_TEMPERATURE}")
+        print(f"️Temperature: {LLM_TEMPERATURE}")
         print(f"Max agent cache: {MAX_AGENT_CACHE_SIZE}")
         print(f"Max chat cache: {MAX_CHAT_CACHE_SIZE}")
         print(f"Max messages per chat: {MAX_CHAT_MESSAGES}")
         print(f"Max tokens per chat: {MAX_CHAT_TOKENS}")
         print(f"Context window: {MAX_CONTEXT_MESSAGES} messages")
-        print(f"Ready to handle agent requests...")
-        await asyncio.Future()  # Run forever
+        print(f"Ready to handle agent requests with smart caching...")
+        await asyncio.Future()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,0 +1,186 @@
+package repositories
+
+import (
+	d "aigents-base/internal/chat/domain"
+	chitf "aigents-base/internal/chat/interfaces"
+	c_at "aigents-base/internal/common/atoms"
+	"fmt"
+
+	"database/sql"
+	"net/http"
+
+	"time"
+	"encoding/json"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+)
+
+type ChatRepository struct {
+	db *sql.DB
+}
+
+func NewChatRepository(db *sql.DB) chitf.ChatRepositoryITF {
+	return &ChatRepository{db: db}
+}
+
+
+func (r *ChatRepository) Create(gctx *gin.Context, data *d.Chat) error {
+	return nil
+}
+
+
+func (r *ChatRepository) GetByID(gctx *gin.Context, data *d.Chat) error {
+	return nil
+}
+
+
+func (r *ChatRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Chat, error) {
+	return nil, nil
+}
+
+func (r *ChatRepository) Update(gctx *gin.Context, data *d.Chat) error {
+	return nil
+}
+
+func (r *ChatRepository) Delete(gctx *gin.Context, data *d.Chat) error {
+	return nil
+}
+
+func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Insert message content
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO message_contents (message_content_uuid, message_content)
+		VALUES ($1, $2)
+	`, msg.MessageContent.MessageContentUUID, msg.MessageContent.Content)
+	if err != nil {
+		return fmt.Errorf("failed to insert message content: %w", err)
+	}
+
+	// Insert message
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO messages (
+			message_uuid, sender_uuid, sender_type, receiver_uuid, receiver_type,
+			chat_uuid, message_content_uuid, created_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	`, msg.MessageUUID, msg.SenderUUID, msg.SenderType, msg.ReceiverUUID,
+		msg.ReceiverType, msg.ChatUUID, msg.MessageContent.MessageContentUUID, msg.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to insert message: %w", err)
+	}
+
+	// Update chat updated_at
+	_, err = tx.ExecContext(ctx, `
+		UPDATE chats SET updated_at = NOW() WHERE chat_uuid = $1
+	`, msg.ChatUUID)
+	if err != nil {
+		return fmt.Errorf("failed to update chat timestamp: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limit uint64) ([]d.Message, error) {
+	query := `
+		SELECT 
+			m.message_uuid,
+			m.sender_uuid,
+			m.sender_type,
+			m.receiver_uuid,
+			m.receiver_type,
+			m.chat_uuid,
+			m.message_content_uuid,
+			mc.message_content,
+			m.created_at
+		FROM messages m
+		INNER JOIN message_contents mc ON m.message_content_uuid = mc.message_content_uuid
+		WHERE m.chat_uuid = $1
+		ORDER BY m.created_at ASC
+		LIMIT $2
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, chatUUID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query chat history: %w", err)
+	}
+	defer rows.Close()
+
+	var msgs []d.Message
+	for rows.Next() {
+		var msg d.Message
+		err := rows.Scan(
+			&msg.MessageUUID,
+			&msg.SenderUUID,
+			&msg.SenderType,
+			&msg.ReceiverUUID,
+			&msg.ReceiverType,
+			&msg.ChatUUID,
+			&msg.MessageContent.MessageContentUUID,
+			&msg.MessageContent.Content,
+			&msg.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan message: %w", err)
+		}
+		msgs = append(msgs, msg)
+	}
+
+	return msgs, nil
+}
+
+func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, since time.Time, limit uint64) ([]d.Message, error) {
+	query := `
+		SELECT 
+			m.message_uuid,
+			m.sender_uuid,
+			m.sender_type,
+			m.receiver_uuid,
+			m.receiver_type,
+			m.chat_uuid,
+			m.message_content_uuid,
+			mc.message_content,
+			m.created_at
+		FROM messages m
+		INNER JOIN message_contents mc ON m.message_content_uuid = mc.message_content_uuid
+		WHERE m.chat_uuid = $1 AND m.created_at > $2
+		ORDER BY m.created_at ASC
+		LIMIT $3
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, chatUUID, since, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query recent messages: %w", err)
+	}
+	defer rows.Close()
+
+	var msgs []d.Message
+	for rows.Next() {
+		var msg d.Message
+		err := rows.Scan(
+			&msg.MessageUUID,
+			&msg.SenderUUID,
+			&msg.SenderType,
+			&msg.ReceiverUUID,
+			&msg.ReceiverType,
+			&msg.ChatUUID,
+			&msg.MessageContent.MessageContentUUID,
+			&msg.MessageContent.Content,
+			&msg.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan message: %w", err)
+		}
+		msgs = append(msgs, msg)
+	}
+
+	return messages, nil
+}

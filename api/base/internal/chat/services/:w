@@ -1,0 +1,48 @@
+package services
+
+import (
+	"fmt"
+	"encoding/json"
+	"time"
+	ws "github.com/gorilla/websocket"
+	"net/http"
+	d "aigents-base/internal/chat/domain"
+	"github.com/gin-gonic/gin"
+)
+
+
+type PythonLLMRequest struct {
+	ChatUUID          string              `json:"chat_uuid"`
+	Content           string                 `json:"content"`
+	SenderUUID        string              `json:"sender_uuid"`
+	SenderType        string             `json:"sender_type"`
+	ReceiverUUID      string              `json:"receiver_uuid"`
+	ReceiverType      string             `json:"receiver_type"`
+	AgentUUID         string              `json:"agent_uuid"`
+	AgentName         string                 `json:"agent_name"`
+	AgentDescription  string                 `json:"agent_description"`
+	CategoryID        uint64                    `json:"category_id"`
+	SystemPrompt      string                 `json:"system_prompt"`
+	ChatHistory       []d.Message              `json:"chat_history,omitempty"`
+	SyncMode          string                 `json:"sync_mode"` // "auto", "incremental", "full"
+}
+
+type PythonLLMResponse struct {
+	ChatUUID           string `json:"chat_uuid"`
+	AgentUUID          string `json:"agent_uuid"`
+	Content            string    `json:"content"`
+	Partial            bool      `json:"partial"`
+	MessageUUID        string `json:"message_uuid,omitempty"`
+	MessageContentUUID string `json:"message_content_uuid,omitempty"`
+	Error              string    `json:"error,omitempty"`
+}
+
+type ChatService struct {
+	ws_str string
+	r chitf.ChatRepositoryITF
+}
+
+func NewChatService(repo chitf.ChatRepositoryITF, ws_str string) (chitf.ChatServiceITF, error) {
+	return &ChatService{r: repo, ws_str: ws_str}, nil
+}
+
