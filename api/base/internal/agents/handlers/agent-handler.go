@@ -1,4 +1,3 @@
-
 package handlers
 
 import (
@@ -21,8 +20,13 @@ func NewAuthHandler(sv agitf.AgentServiceITF) *AgentHandler {
 
 func (h *AgentHandler) Create(gctx *gin.Context) {
 	var req struct {
-		//
+		Name string `json:"name" binding:"required"`
+		Description string `json:"description"`
+		ImageURL string `json:"image_url"`
+		CategoryID uint64 `json:"category_id" binding:"required"`
 	}
+
+	authUUID := m.GetAuthUUID(gctx)
 
 	if err := gctx.ShouldBindJSON(&req); err != nil {
 		err = c_at.AbortAndBuildErrLogAtom(
@@ -35,8 +39,14 @@ func (h *AgentHandler) Create(gctx *gin.Context) {
 	}
 
 	agent := &d.Agent{
-		
+		Name: req.Name,
+		Description: req.Description,
+		ImageURL: req.ImageURL,
+		AuthUUID: authUUID,
 	}
+	agent.AgentConfig.Category.CategoryID = req.CategoryID
+	// Temporaly
+	agent.AgentConfig.CategoryPresetEnabled = false
 
 	err := h.s.Create(gctx, agent)
 	if err != nil {

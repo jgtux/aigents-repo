@@ -11,7 +11,7 @@ type AgentSystem struct {
 }
 
 type AgentCategory struct {
-	CategoryID            int        `json:"category_id"`
+	CategoryID            uint64        `json:"category_id"`
 	CategoryName          string     `json:"category_name"`
 	AgentSystemPreset AgentSystem  `json:"agent_system_preset"`
 	CreatedAt             time.Time  `json:"created_at"`
