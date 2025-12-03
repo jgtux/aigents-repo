@@ -1,69 +1,35 @@
-// criar.js - Script para a página de criação de agentes
+// criar.js - Script para a página de criação de agentes com URL de imagem
 
 document.addEventListener('DOMContentLoaded', function() {
     const formCriar = document.getElementById('formCriarAgente');
-    const inputImagem = document.getElementById('imagemAgente');
-    const uploadArea = document.getElementById('uploadArea');
+    const urlImagem = document.getElementById('urlImagem');
     const previewContainer = document.getElementById('previewContainer');
     const imagePreview = document.getElementById('imagePreview');
-    const btnRemoveImage = document.getElementById('btnRemoveImage');
-    const uploadContent = uploadArea.querySelector('.upload__content');
 
-    // Preview da imagem quando selecionada
-    inputImagem.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+    // Preview da imagem quando a URL é inserida
+    urlImagem.addEventListener('input', function(e) {
+        const url = e.target.value.trim();
         
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                uploadContent.style.display = 'none';
+        if (url) {
+            // Validar se é uma URL válida
+            try {
+                new URL(url);
+                
+                // Mostrar preview
+                imagePreview.src = url;
                 previewContainer.style.display = 'flex';
-            };
-            
-            reader.readAsDataURL(file);
-        }
-    });
-
-    // Remover imagem
-    btnRemoveImage.addEventListener('click', function(e) {
-        e.stopPropagation();
-        inputImagem.value = '';
-        imagePreview.src = '';
-        uploadContent.style.display = 'flex';
-        previewContainer.style.display = 'none';
-    });
-
-    // Drag and drop para upload de imagem
-    uploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--cor-botao)';
-        uploadArea.style.backgroundColor = 'rgba(127, 140, 170, 0.5)';
-    });
-
-    uploadArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        uploadArea.style.borderColor = '';
-        uploadArea.style.backgroundColor = '';
-    });
-
-    uploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        uploadArea.style.borderColor = '';
-        uploadArea.style.backgroundColor = '';
-        
-        const file = e.dataTransfer.files[0];
-        
-        if (file && file.type.startsWith('image/')) {
-            // Atualizar o input file
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            inputImagem.files = dataTransfer.files;
-            
-            // Trigger change event
-            const event = new Event('change', { bubbles: true });
-            inputImagem.dispatchEvent(event);
+                
+                // Se a imagem falhar ao carregar, esconder o preview
+                imagePreview.onerror = function() {
+                    previewContainer.style.display = 'none';
+                    alert('Não foi possível carregar a imagem. Verifique a URL.');
+                };
+                
+            } catch (error) {
+                previewContainer.style.display = 'none';
+            }
+        } else {
+            previewContainer.style.display = 'none';
         }
     });
 
@@ -74,22 +40,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const nome = document.getElementById('nomeAgente').value;
         const categoria = document.getElementById('categoriaAgente').value;
         const descricao = document.getElementById('descricaoAgente').value;
-        const imagem = inputImagem.files[0];
+        const imagemUrl = urlImagem.value.trim();
         
-        // Converter imagem para base64 para salvar no localStorage
-        if (imagem) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                salvarProjeto(nome, categoria, descricao, e.target.result);
-            };
-            reader.readAsDataURL(imagem);
-        } else {
-            salvarProjeto(nome, categoria, descricao, null);
+        // Validar URL da imagem se foi fornecida
+        if (imagemUrl) {
+            try {
+                new URL(imagemUrl);
+            } catch (error) {
+                alert('Por favor, insira uma URL válida para a imagem.');
+                return;
+            }
         }
+        
+        salvarProjeto(nome, categoria, descricao, imagemUrl);
     });
 
     // Função para salvar o projeto
-    function salvarProjeto(nome, categoria, descricao, imagemBase64) {
+    function salvarProjeto(nome, categoria, descricao, imagemUrl) {
         // Gerar ID único
         const projectId = 'PRJ' + Date.now();
         const hoje = new Date().toLocaleDateString('pt-BR');
@@ -102,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
             descricao: descricao,
             dataCriacao: hoje,
             dataEdicao: hoje,
-            imagem: imagemBase64
+            imagem: imagemUrl || null // Salvar a URL ou null se não fornecida
         };
         
         // Buscar projetos existentes
@@ -139,4 +106,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
+});s

@@ -1,4 +1,17 @@
-/* Criar Agente Page Styles */
+/* Criar Agente Page Styles - Atualizado para URL */
+
+/* Acessibilidade - Oculta visualmente mas mantém para leitores de tela */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 .main__criar {
     padding: 3em 2em;
@@ -28,6 +41,14 @@
     display: flex;
     flex-direction: column;
     gap: 1.5em;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.form__section legend {
+    padding: 0;
+    margin-bottom: 1em;
 }
 
 .form__section__description {
@@ -98,69 +119,21 @@ select.input__criar option {
     min-height: 150px;
 }
 
-/* Upload Area */
+/* Image Preview - Ajustado para URL */
 .form__group__image {
     position: relative;
 }
 
-.upload__area {
-    position: relative;
+.preview__container {
+    margin-top: 1em;
+    padding: 1em;
     background-color: rgba(127, 140, 170, 0.3);
     border: 2px solid var(--cor-secundaria);
     border-radius: 12px;
-    padding: 2em;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.upload__area:hover {
-    border-color: var(--cor-botao);
-    background-color: rgba(127, 140, 170, 0.4);
-}
-
-.input__file {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 2;
-}
-
-.upload__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
-    pointer-events: none;
-}
-
-.upload__icon {
-    width: 50px;
-    height: 50px;
-    opacity: 0.7;
-}
-
-.upload__text {
-    color: var(--cor-texto);
-    font-size: 1em;
-    font-weight: 500;
-}
-
-/* Image Preview */
-.preview__container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .image__preview {
@@ -168,31 +141,6 @@ select.input__criar option {
     max-height: 200px;
     border-radius: 8px;
     object-fit: contain;
-}
-
-.btn__remove__image {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 35px;
-    height: 35px;
-    background-color: rgba(220, 53, 69, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    font-size: 1.5em;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 3;
-    line-height: 1;
-}
-
-.btn__remove__image:hover {
-    background-color: #dc3545;
-    transform: scale(1.1);
 }
 
 /* Botão Criar */

@@ -15,4 +15,5 @@ type AgentServiceITF interface {
 type AgentRepositoryITF interface {
 	citf.Common[d.Agent]
 	FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error)
+	GetAgentByUUID(gctx *gin.Context, agentUUID string) (*d.Agent, error)
 }

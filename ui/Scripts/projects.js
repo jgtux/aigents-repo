@@ -15,14 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Redirecionar para a página criar.html quando clicar no botão "+ novo"
     if (btnNewProject) {
         btnNewProject.addEventListener('click', function() {
-            window.location.href = 'Criar.html';
+            window.location.href = 'criar.html';
         });
     }
 
     // Redirecionar para a página criar.html quando clicar no card "+ novo"
     if (newProjectCard) {
         newProjectCard.addEventListener('click', function() {
-            window.location.href = 'Criar.html';
+            window.location.href = 'criar.html';
         });
     }
 

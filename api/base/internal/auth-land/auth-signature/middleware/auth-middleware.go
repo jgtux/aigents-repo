@@ -51,7 +51,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c_at.FeedErrLogToFile(err)
 			return
 		}
-		gctx.Set("email", claims.UUID)
+		gctx.Set("auth_uuid", claims.UUID)
 		gctx.Set("role", claims.Role)
 
 		gctx.Next()
@@ -115,4 +115,18 @@ func GenerateJWT(gctx *gin.Context, c *Claims, useRefresh bool) (string, error) 
 	}
 
 	return signedStr, nil
+}
+
+func GetAuthUUID(gctx *gin.Context) (string, bool) {
+	val, exists := gctx.Get("auth_uuid")
+	if !exists {
+		return "", false
+	}
+
+	uuidStr, ok := val.(string)
+	if !ok {
+		return "", false
+	}
+
+	return uuidStr, true
 }

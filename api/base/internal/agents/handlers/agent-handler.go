@@ -3,8 +3,8 @@ package handlers
 import (
 	d "aigents-base/internal/agents/domain"
 	agitf "aigents-base/internal/agents/interfaces"
-	c_at "aigents-base/internal/common/atoms"
 	m "aigents-base/internal/auth-land/auth-signature/middleware"
+	c_at "aigents-base/internal/common/atoms"
 	"net/http"
 	"github.com/google/uuid"
 	"github.com/gin-gonic/gin"
@@ -19,6 +19,17 @@ func NewAuthHandler(sv agitf.AgentServiceITF) *AgentHandler {
 }
 
 func (h *AgentHandler) Create(gctx *gin.Context) {
+	authUUID, ok := m.GetAuthUUID(gctx)
+	if !ok {
+		err := c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Invalid context values.",
+			"Invalid auth_uuid in context!")
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
 	var req struct {
 		Name string `json:"name" binding:"required"`
 		Description string `json:"description"`

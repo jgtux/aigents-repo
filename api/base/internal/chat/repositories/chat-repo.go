@@ -30,6 +30,21 @@ func (r *ChatRepository) Create(gctx *gin.Context, data *d.Chat) error {
 
 
 func (r *ChatRepository) GetByID(gctx *gin.Context, data *d.Chat) error {
+	query := `
+		SELECT chat_uuid, agent_uuid, auth_uuid, created_at, updated_at
+		FROM chats
+		WHERE chat_uuid = $1 AND deleted_at IS NULL
+	`
+	err := s.db.QueryRow(query, data.ChatUUID).Scan(
+		&chat.ChatUUID,
+		&chat.AgentUUID,
+		&chat.AuthUUID,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+	if err != nil {
+		return nil
+	}
 	return nil
 }
 
@@ -47,46 +62,42 @@ func (r *ChatRepository) Delete(gctx *gin.Context, data *d.Chat) error {
 }
 
 func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error {
-	tx, err := r.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	// Insert message content
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO message_contents (message_content_uuid, message_content)
-		VALUES ($1, $2)
-	`, msg.MessageContent.MessageContentUUID, msg.MessageContent.Content)
-	if err != nil {
-		return fmt.Errorf("failed to insert message content: %w", err)
-	}
-
-	// Insert message
-	_, err = tx.ExecContext(ctx, `
+	sql := `
+		WITH inserted_content AS (
+			INSERT INTO message_contents (message_content_uuid, message_content)
+			VALUES ($1, $2)
+			RETURNING message_content_uuid
+		)
 		INSERT INTO messages (
 			message_uuid, sender_uuid, sender_type, receiver_uuid, receiver_type,
 			chat_uuid, message_content_uuid, created_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	`, msg.MessageUUID, msg.SenderUUID, msg.SenderType, msg.ReceiverUUID,
-		msg.ReceiverType, msg.ChatUUID, msg.MessageContent.MessageContentUUID, msg.CreatedAt)
-	if err != nil {
-		return fmt.Errorf("failed to insert message: %w", err)
-	}
+		)
+		SELECT $3, $4, $5, $6, $7, $8, message_content_uuid, $9
+		FROM inserted_content;
 
-	// Update chat updated_at
-	_, err = tx.ExecContext(ctx, `
-		UPDATE chats SET updated_at = NOW() WHERE chat_uuid = $1
-	`, msg.ChatUUID)
-	if err != nil {
-		return fmt.Errorf("failed to update chat timestamp: %w", err)
-	}
+		UPDATE chats
+		SET updated_at = NOW()
+		WHERE chat_uuid = $8;
+	`
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+	_, err := r.db.ExecContext(gctx, sql,
+		msg.MessageContent.MessageContentUUID,
+		msg.MessageContent.Content,
+		msg.MessageUUID,
+		msg.SenderUUID,
+		msg.SenderType,
+		msg.ReceiverUUID,
+		msg.ReceiverType,
+		msg.ChatUUID,
+		msg.CreatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to insert message and update chat: %w", err)
 	}
 
 	return nil
+}
+
 }
 
 func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limit uint64) ([]d.Message, error) {
@@ -108,7 +119,7 @@ func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limi
 		LIMIT $2
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, chatUUID, limit)
+	rows, err := r.db.Query(query, chatUUID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query chat history: %w", err)
 	}
@@ -137,6 +148,8 @@ func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limi
 	return msgs, nil
 }
 
+
+
 func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, since time.Time, limit uint64) ([]d.Message, error) {
 	query := `
 		SELECT 
@@ -156,7 +169,7 @@ func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, s
 		LIMIT $3
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, chatUUID, since, limit)
+	rows, err := r.db.Query(query, chatUUID, since, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query recent messages: %w", err)
 	}
@@ -182,5 +195,5 @@ func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, s
 		msgs = append(msgs, msg)
 	}
 
-	return messages, nil
+	return msgs, nil
 }
