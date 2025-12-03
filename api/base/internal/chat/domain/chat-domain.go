@@ -8,6 +8,7 @@ type Chat struct {
 	ChatUUID  string `json:"chat_uuid"`
 	AgentUUID string `json:"agent_uuid"`
 	AuthUUID  string `json:"auth_uuid"`
+	History   []Message `json:"history,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
