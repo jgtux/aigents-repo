@@ -22,6 +22,10 @@ func NewAuthService(repo agitf.AgentRepositoryITF) agitf.AgentServiceITF {
 }
 
 func (s *AgentService) Create(gctx *gin.Context, data *d.Agent) error {
+	data.AgentConfig.AgentSystem.SystemPreset = map[string]any{
+		"system_prompt": fmt.Sprintf("You're a helpful assistant and your job will be doing this description: %s", data.Description),
+	}
+
 	return s.r.Create(gctx, data)
 }
 

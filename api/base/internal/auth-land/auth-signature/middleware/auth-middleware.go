@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"github.com/google/uuid"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -51,6 +52,18 @@ func AuthMiddleware() gin.HandlerFunc {
 			c_at.FeedErrLogToFile(err)
 			return
 		}
+
+
+		if _, err := uuid.Parse(claims.UUID); err != nil {
+			err := c_at.AbortAndBuildErrLogAtom(
+				gctx,
+				http.StatusUnauthorized,
+				"(M) Invalid UUID in token.",
+				"Invalid UUID in token.")
+			c_at.FeedErrLogToFile(err)
+			return
+		}
+
 		gctx.Set("auth_uuid", claims.UUID)
 		gctx.Set("role", claims.Role)
 

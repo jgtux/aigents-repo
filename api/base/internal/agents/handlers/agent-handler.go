@@ -37,8 +37,6 @@ func (h *AgentHandler) Create(gctx *gin.Context) {
 		CategoryID uint64 `json:"category_id" binding:"required"`
 	}
 
-	authUUID := m.GetAuthUUID(gctx)
-
 	if err := gctx.ShouldBindJSON(&req); err != nil {
 		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
@@ -88,7 +86,9 @@ func (h *AgentHandler) GetByID(gctx *gin.Context)  {
 		return
 	}
 
-	agent := &d.Agent{}
+	agent := &d.Agent{
+		AgentUUID: req.AgentUUID.String(),
+	}
 	err := h.s.GetByID(gctx, agent)
 	if err != nil {
 		c_at.FeedErrLogToFile(err)
