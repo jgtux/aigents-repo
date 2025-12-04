@@ -1,11 +1,10 @@
-------------------------------------------------------------
--- POPULAÇÃO INICIAL DO BANCO
--- Somente usuários USER
-------------------------------------------------------------
+-- ============================================================
+-- Dados iniciais do banco
+-- ============================================================
 
--------------------------------
+-- ============================================================
 -- 1. auths
--------------------------------
+-- ============================================================
 INSERT INTO auths (auth_uuid, email, password, role) VALUES
 ('11111111-1111-1111-1111-111111111111', 'ana@example.com', 'senha123', 'USER'),
 ('22222222-2222-2222-2222-222222222222', 'bruno@example.com', 'senha123', 'USER'),
@@ -14,9 +13,9 @@ INSERT INTO auths (auth_uuid, email, password, role) VALUES
 ('55555555-5555-5555-5555-555555555555', 'erika@example.com', 'senha123', 'USER');
 
 
--------------------------------
+-- ============================================================
 -- 2. agent_systems
--------------------------------
+-- ============================================================
 INSERT INTO agent_systems (agent_system_uuid, system_preset) VALUES
 ('aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1', '{"persona": "Especialista em marketing digital", "temperature": 0.6}'),
 ('aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '{"persona": "Programador full-stack", "temperature": 0.2}'),
@@ -25,9 +24,9 @@ INSERT INTO agent_systems (agent_system_uuid, system_preset) VALUES
 ('aaaaaaa5-aaaa-aaaa-aaaa-aaaaaaaaaaa5', '{"persona": "Consultor jurídico", "temperature": 0.3}');
 
 
--------------------------------
+-- ============================================================
 -- 3. agent_categories
--------------------------------
+-- ============================================================
 INSERT INTO agent_categories (category_id, category_name, agent_system_uuid_preset) VALUES
 (1, 'Marketing',    'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
 (2, 'Programação',  'aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaa2'),
@@ -36,9 +35,9 @@ INSERT INTO agent_categories (category_id, category_name, agent_system_uuid_pres
 (5, 'Jurídico',     'aaaaaaa5-aaaa-aaaa-aaaa-aaaaaaaaaaa5');
 
 
--------------------------------
+-- ============================================================
 -- 4. agents_config
--------------------------------
+-- ============================================================
 INSERT INTO agents_config (agent_config_uuid, category_id, agent_system_uuid) VALUES
 ('bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 1, 'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
 ('bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2', 2, 'aaaaaaa2-aaaa-aaaa-aaaa-aaaaaaaaaaa2'),
@@ -47,9 +46,9 @@ INSERT INTO agents_config (agent_config_uuid, category_id, agent_system_uuid) VA
 ('bbbbbbb5-bbbb-bbbb-bbbb-bbbbbbbbbbb5', 5, 'aaaaaaa5-aaaa-aaaa-aaaa-aaaaaaaaaaa5');
 
 
--------------------------------
+-- ============================================================
 -- 5. agents
--------------------------------
+-- ============================================================
 INSERT INTO agents (
   agent_uuid, name, description, image_url,
   agent_config_uuid, auth_uuid
@@ -91,9 +90,9 @@ VALUES
  '22222222-2222-2222-2222-222222222222');
 
 
--------------------------------
+-- ============================================================
 -- 6. chats
--------------------------------
+-- ============================================================
 INSERT INTO chats (chat_uuid, agent_uuid, auth_uuid) VALUES
 ('ddddddd1-dddd-dddd-dddd-ddddddddddd1', 'ccccccc1-cccc-cccc-cccc-ccccccccccc1', '11111111-1111-1111-1111-111111111111'),
 ('ddddddd2-dddd-dddd-dddd-ddddddddddd2', 'ccccccc2-cccc-cccc-cccc-ccccccccccc2', '44444444-4444-4444-4444-444444444444'),
@@ -102,9 +101,9 @@ INSERT INTO chats (chat_uuid, agent_uuid, auth_uuid) VALUES
 ('ddddddd5-dddd-dddd-dddd-ddddddddddd5', 'ccccccc5-cccc-cccc-cccc-ccccccccccc5', '44444444-4444-4444-4444-444444444444');
 
 
--------------------------------
+-- ============================================================
 -- 7. message_contents
--------------------------------
+-- ============================================================
 INSERT INTO message_contents (message_content_uuid, message_content) VALUES
 ('eeeeeee1-eeee-eeee-eeee-eeeeeeeeeee1', 'Oi! Pode me ajudar com ideias de posts?'),
 ('eeeeeee2-eeee-eeee-eeee-eeeeeeeeeee2', 'Claro! Que tipo de negócio você tem?'),
@@ -118,15 +117,15 @@ INSERT INTO message_contents (message_content_uuid, message_content) VALUES
 ('eeeeee10-eeee-eeee-eeee-eeeeeeeeeee0', 'Me conte o que aconteceu e eu oriento você.');
 
 
--------------------------------
+-- ============================================================
 -- 8. messages
--------------------------------
+-- ============================================================
 INSERT INTO messages (
   message_uuid, sender_uuid, sender_type,
   receiver_uuid, receiver_type,
   chat_uuid, message_content_uuid
 ) VALUES
--- CHAT 1 — Marketing
+-- CHAT 1 Marketing
 ('fffffff1-ffff-ffff-ffff-fffffffffff1',
  '11111111-1111-1111-1111-111111111111', 'AUTH',
  'ccccccc1-cccc-cccc-cccc-ccccccccccc1', 'AGENT',
@@ -139,7 +138,7 @@ INSERT INTO messages (
  'ddddddd1-dddd-dddd-dddd-ddddddddddd1',
  'eeeeeee2-eeee-eeee-eeee-eeeeeeeeeee2'),
 
--- CHAT 2 — Programação
+-- CHAT 2 Programação
 ('fffffff3-ffff-ffff-ffff-fffffffffff3',
  '44444444-4444-4444-4444-444444444444', 'AUTH',
  'ccccccc2-cccc-cccc-cccc-ccccccccccc2', 'AGENT',
@@ -152,7 +151,7 @@ INSERT INTO messages (
  'ddddddd2-dddd-dddd-dddd-ddddddddddd2',
  'eeeeeee4-eeee-eeee-eeee-eeeeeeeeeee4'),
 
--- CHAT 3 — Nutrição
+-- CHAT 3 Nutrição
 ('fffffff5-ffff-ffff-ffff-fffffffffff5',
  '55555555-5555-5555-5555-555555555555', 'AUTH',
  'ccccccc3-cccc-cccc-cccc-ccccccccccc3', 'AGENT',
@@ -165,7 +164,7 @@ INSERT INTO messages (
  'ddddddd3-dddd-dddd-dddd-ddddddddddd3',
  'eeeeeee6-eeee-eeee-eeee-eeeeeeeeeee6'),
 
--- CHAT 4 — Matemática
+-- CHAT 4 Matemática
 ('fffffff7-ffff-ffff-ffff-fffffffffff7',
  '11111111-1111-1111-1111-111111111111', 'AUTH',
  'ccccccc4-cccc-cccc-cccc-ccccccccccc4', 'AGENT',
@@ -178,7 +177,7 @@ INSERT INTO messages (
  'ddddddd4-dddd-dddd-dddd-ddddddddddd4',
  'eeeeeee8-eeee-eeee-eeee-eeeeeeeeeee8'),
 
--- CHAT 5 — Jurídico
+-- CHAT 5 Jurídico
 ('fffffff9-ffff-ffff-ffff-fffffffffff9',
  '44444444-4444-4444-4444-444444444444', 'AUTH',
  'ccccccc5-cccc-cccc-cccc-ccccccccccc5', 'AGENT',
