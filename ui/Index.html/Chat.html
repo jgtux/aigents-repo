@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chat with your AI agent on AIgents platform. Interactive conversation interface for artificial intelligence assistants.">
+    <meta name="keywords" content="AI chat, agent conversation, artificial intelligence chat, AIgents">
+    <meta name="author" content="AIgents">
+    <meta name="robots" content="noindex, nofollow">
+    <title>AIgents - Chat</title>
+    <link rel="stylesheet" href="../estilos/styles.css">
+</head>
+<body>
+    <header>
+        <nav class="div__logo__pequena">
+            <img src="../img/Logo_pequena.svg" alt="AIgents Logo">
+            <h1 class="titulo__logo__pequena"><strong>AIgents</strong></h1>
+        </nav>
+
+        <nav aria-label="Menu principal">
+            <ul class="header__lista">
+                <li><a class="itens__lista" href="Home.html">Home</a></li>
+                <li><a class="itens__lista" href="Agents.html">Agents</a></li>
+                <li class="itens__lista"><a class="projects__active" href="Myprojects.html">My Projects</a></li>
+                <li><a class="itens__lista" href="About.html">About</a></li>
+            </ul>
+        </nav>
+
+        <ul class="header__links__lista">
+            <a href="Login.html"><img src="../img/Perfil.svg" alt="Profile Icon"></a>
+        </ul>
+    </header>
+
+    <main class="main__chat">
+        <!-- Agent Info Sidebar -->
+        <aside class="chat__sidebar" aria-label="Agent Information">
+            <article class="agent__info__card">
+                <figure class="agent__avatar" id="agentAvatar">
+                    IA
+                </figure>
+                
+                <header class="agent__header">
+                    <h2 class="agent__title" id="agentName">Agent Name</h2>
+                    <p class="agent__category" id="agentCategory">Category</p>
+                </header>
+                
+                <p class="agent__description" id="agentDescription">Agent description will appear here</p>
+                
+                <footer class="agent__meta">
+                    <span class="agent__id__display" id="agentId">ID: PRJ001</span>
+                </footer>
+
+                <nav>
+                    <button class="btn__back" id="btnBack" aria-label="Return to projects page">
+                        ← Back to Projects
+                    </button>
+                </nav>
+            </article>
+        </aside>
+
+        <!-- Chat Area -->
+        <section class="chat__container" aria-label="Chat conversation">
+            <article class="chat__messages" id="chatMessages" role="log" aria-live="polite" aria-atomic="false">
+                <header class="welcome__message">
+                    <h3>Welcome! 👋</h3>
+                    <p>Start a conversation with your AI agent</p>
+                </header>
+            </article>
+
+            <!-- Input Area -->
+            <footer class="chat__input__container">
+                <form class="chat__input__wrapper" id="chatForm" aria-label="Message input form">
+                    <label for="chatInput" class="visually-hidden">Type your message</label>
+                    <textarea 
+                        class="chat__input" 
+                        id="chatInput" 
+                        placeholder="Type your message here..."
+                        rows="1"
+                        aria-label="Message input"
+                        required
+                    ></textarea>
+                    <button class="btn__send" id="btnSend" type="submit" title="Send message" aria-label="Send message">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+                <small class="chat__hints">
+                    Press Enter to send, Shift+Enter for new line
+                </small>
+            </footer>
+        </section>
+    </main>
+
+    <script src="../Scripts/chat.js"></script>
+</body>
+</html>
