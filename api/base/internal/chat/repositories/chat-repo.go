@@ -3,14 +3,11 @@ package repositories
 import (
 	d "aigents-base/internal/chat/domain"
 	chitf "aigents-base/internal/chat/interfaces"
-	c_at "aigents-base/internal/common/atoms"
 	"fmt"
 
 	"database/sql"
-	"net/http"
 
 	"time"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -35,12 +32,12 @@ func (r *ChatRepository) GetByID(gctx *gin.Context, data *d.Chat) error {
 		FROM chats
 		WHERE chat_uuid = $1 AND deleted_at IS NULL
 	`
-	err := s.db.QueryRow(query, data.ChatUUID).Scan(
-		&chat.ChatUUID,
-		&chat.AgentUUID,
-		&chat.AuthUUID,
-		&chat.CreatedAt,
-		&chat.UpdatedAt,
+	err := r.db.QueryRow(query, data.ChatUUID).Scan(
+		&data.ChatUUID,
+		&data.AgentUUID,
+		&data.AuthUUID,
+		&data.CreatedAt,
+		&data.UpdatedAt,
 	)
 	if err != nil {
 		return nil
@@ -98,7 +95,7 @@ func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error 
 	return nil
 }
 
-}
+
 
 func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limit uint64) ([]d.Message, error) {
 	query := `

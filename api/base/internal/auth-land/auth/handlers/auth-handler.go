@@ -41,7 +41,7 @@ func (h *AuthHandler) Create(gctx *gin.Context) {
 		return
 	}
 
-	c_at.RespAtom(gctx, http.StatusCreated, "(*) Authentication created.")
+	c_at.RespAtom[*struct{}](gctx, http.StatusCreated, "(*) Authentication created.", nil)
 }
 
 func (h *AuthHandler) Login(gctx *gin.Context) {
@@ -83,7 +83,7 @@ func (h *AuthHandler) Login(gctx *gin.Context) {
 	gctx.SetCookie("access_token", accessToken, int(m.AccessTokenTTL.Seconds()), "/", "", false, true)
 	gctx.SetCookie("refresh_token", refreshToken, int(m.RefreshTokenTTL.Seconds()), "/", "", false, true)
 
-	c_at.RespAtom(gctx, http.StatusOK, "(*) Login successful.")
+	c_at.RespAtom[*struct{}](gctx, http.StatusOK, "(*) Login successful.", nil)
 }
 
 func (h *AuthHandler) Refresh(gctx *gin.Context) {
@@ -121,7 +121,7 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 
 	gctx.SetCookie("access_token", newAccessToken, int(m.AccessTokenTTL.Seconds()), "/", "", false, true)
 
-	c_at.RespAtom(gctx, http.StatusOK, "(*) Access token refreshed.")
+	c_at.RespAtom[*struct{}](gctx, http.StatusOK, "(*) Access token refreshed.", nil)
 }
 
 func (h *AuthHandler) GetByID(gctx *gin.Context) error {

@@ -125,6 +125,7 @@ type ChatService struct {
 func NewChatService(repo chitf.ChatRepositoryITF, agrepo agitf.AgentRepositoryITF, wsURL string, lastMsgsLimit uint64, poolSize int) chitf.ChatServiceITF {
 	return &ChatService{
 		r:             repo,
+		agr:           agrepo,
 		lastMsgsLimit: lastMsgsLimit,
 		connPool:      NewConnectionPool(wsURL, poolSize),
 	}
@@ -161,7 +162,7 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 	}
 
 	// 3. Get chat history
-	err = s.r.GetChatHistory(gctx, chat, s.lastMsgsLimit)
+	chat.History, err = s.r.GetChatHistory(gctx, chat.ChatUUID, s.lastMsgsLimit)
 	if err != nil {
 		return fmt.Errorf("failed to get chat history: %w", err)
 	}
@@ -252,6 +253,131 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 	}
 
 	*data = *agentMsg
+	return nil
+}
+
+func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback func(chunk string)) error {
+	// Validate that at least one message is provided
+	if len(data.History) == 0 {
+		return fmt.Errorf("at least one message is required to create a chat")
+	}
+
+	// Get connection from pool
+	conn, err := s.connPool.Get()
+	if err != nil {
+		return fmt.Errorf("failed to get connection: %w", err)
+	}
+
+	// Connection is exclusive to this goroutine now
+	returnConn := true
+	defer func() {
+		if returnConn {
+			s.connPool.Put(conn)
+		} else {
+			conn.Close()
+		}
+	}()
+
+	// 1. Create the chat in the database first
+	if err := s.r.Create(gctx, data); err != nil {
+		return fmt.Errorf("failed to create chat: %w", err)
+	}
+
+	// 2. Get agent configuration
+	agent, err := s.agr.GetAgentByUUID(gctx, data.AgentUUID)
+	if err != nil {
+		return fmt.Errorf("failed to get agent: %w", err)
+	}
+
+	// 3. Get the first message (user message)
+	userMessage := data.History[0]
+	userMessage.ChatUUID = data.ChatUUID
+
+	// 4. Save user message to DB
+	if err := s.r.AttachMessage(gctx, &userMessage); err != nil {
+		return fmt.Errorf("failed to save user message: %w", err)
+	}
+
+	// 5. Extract system prompt
+	systemPrompt := "You are a helpful assistant."
+	if agent.AgentConfig.AgentSystem.SystemPreset != nil {
+		if prompt, ok := agent.AgentConfig.AgentSystem.SystemPreset["system_prompt"].(string); ok {
+			systemPrompt = prompt
+		}
+	}
+
+	// 6. Build request for Python (new chat = auto sync mode)
+	request := PythonLLMRequest{
+		ChatUUID:         data.ChatUUID,
+		Content:          userMessage.MessageContent.Content,
+		SenderUUID:       userMessage.SenderUUID,
+		SenderType:       userMessage.SenderType,
+		ReceiverUUID:     agent.AgentUUID,
+		ReceiverType:     "AGENT",
+		AgentUUID:        agent.AgentUUID,
+		AgentName:        agent.Name,
+		AgentDescription: agent.Description,
+		CategoryID:       1,
+		SystemPrompt:     systemPrompt,
+		ChatHistory:      []d.Message{}, // Empty for new chat
+		SyncMode:         "auto",        // New chat always uses auto mode
+	}
+
+	// 7. Send request to Python
+	if err := conn.WriteJSON(request); err != nil {
+		returnConn = false
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+
+	// 8. Stream response chunks
+	var agentMessageUUID string
+	var messageContent d.MessageContent
+
+	for {
+		var response PythonLLMResponse
+		err = conn.ReadJSON(&response)
+		if err != nil {
+			returnConn = false
+			return fmt.Errorf("failed to read response: %w", err)
+		}
+
+		if response.Error != "" {
+			return fmt.Errorf("python service error: %s", response.Error)
+		}
+
+		if response.Partial {
+			// Stream chunk to client
+			if streamCallback != nil {
+				streamCallback(response.Content)
+			}
+		} else {
+			// Final response
+			messageContent.Content = response.Content
+			messageContent.MessageContentUUID = response.MessageContentUUID
+			agentMessageUUID = response.MessageUUID
+			break
+		}
+	}
+
+	// 9. Save agent response to DB
+	agentMsg := &d.Message{
+		MessageUUID:    agentMessageUUID,
+		SenderUUID:     agent.AgentUUID,
+		SenderType:     "AGENT",
+		ReceiverUUID:   userMessage.SenderUUID,
+		ReceiverType:   userMessage.SenderType,
+		ChatUUID:       data.ChatUUID,
+		MessageContent: messageContent,
+		CreatedAt:      time.Now(),
+	}
+
+	if err := s.r.AttachMessage(gctx, agentMsg); err != nil {
+		return fmt.Errorf("failed to save agent message: %w", err)
+	}
+
+	// 10. Update the chat's history with both messages
+	data.History = []d.Message{userMessage, *agentMsg}
+
 	return nil
 }
 

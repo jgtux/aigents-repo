@@ -228,7 +228,7 @@ func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Ag
 	return agents, nil
 }
 
-func (r *AgentRepository) GetAgentByUUID(gctx *gin.Context, agentUUID string) (*d.Agent, nil) {
+func (r *AgentRepository) GetAgentByUUID(gctx *gin.Context, agentUUID string) (*d.Agent, error) {
 	query := `
 	SELECT
 		a.agent_uuid,

@@ -14,7 +14,7 @@ type AgentHandler struct {
 	s agitf.AgentServiceITF
 }
 
-func NewAuthHandler(sv agitf.AgentServiceITF) *AgentHandler {
+func NewAgentHandler(sv agitf.AgentServiceITF) *AgentHandler {
 	return &AgentHandler{s: sv}
 }
 
