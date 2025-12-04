@@ -3,9 +3,7 @@ from graph_core import GraphCore ,Node
 from agents_llm_core import AgentLLMCore
 from callable_creator import CallableCreator
 from langchain.prompts import ChatPromptTemplate
-"""
-Programa fodastico para rodar Ia Agents
-"""
+
 agent_core=AgentLLMCore()
 graph_core=GraphCore()
 creator=CallableCreator()
@@ -105,4 +103,5 @@ while (ok):
         ok=False
 
     else:
+
         print("opcao invalida")
