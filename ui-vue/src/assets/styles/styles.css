@@ -5,6 +5,7 @@
 @import url(./agents.css);
 @import url(./projects.css);
 @import url(./criar.css);
+@import url(./chat.css);
 
 :root {
     --cor-primaria:linear-gradient(135deg, #333446 63%, #5F6292 100%);

@@ -6,6 +6,7 @@ import Myprojects from '@/pages/Myprojects.vue'
 import Create from '@/pages/Create.vue'
 import Login from '@/pages/Login.vue'
 import Signup from '@/pages/Signup.vue'
+import Chat from '@/pages/Chat.vue'
 
 const routes = [
   {
@@ -64,6 +65,15 @@ const routes = [
     component: Signup,
     meta: {
       title: 'AIgents Sign-up'
+    }
+  },
+  {
+    path: '/chat/:chat_uuid',
+    name: 'Chat',
+    component: Chat,
+    meta: {
+      title: 'Chat - AIgents',
+      requiresAuth: true // probably private
     }
   },
   {
