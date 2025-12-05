@@ -1,0 +1,136 @@
+[ERR LOG] 2025-12-04 15:11:48 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:12:00 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Invalid body request
+[ERR LOG] 2025-12-04 15:12:22 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:12:36 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:12:43 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:12:44 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:12:47 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:13:12 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:27:55 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:56:03 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:56:03 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:56:10 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:56:10 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:56:19 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:56:19 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:56:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:56:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:57:26 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:26 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:57:30 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:30 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:57:31 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:31 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:57:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:57:42 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:43 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:43 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:43 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:44 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:44 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:56 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:57:56 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 15:59:44 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 15:59:44 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 16:01:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 16:01:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 16:01:31 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 16:03:36 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 16:03:36 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 16:05:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 16:28:35 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 16:28:35 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Missing token.
+[ERR LOG] 2025-12-04 16:28:36 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:28:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:29:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:29:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:30:12 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:30:12 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 16:40:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: column a.image_url does not exist
+[ERR LOG] 2025-12-04 16:40:26 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: column a.image_url does not exist
+[ERR LOG] 2025-12-04 16:40:26 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: column a.image_url does not exist
+[ERR LOG] 2025-12-04 16:40:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: column a.image_url does not exist
+[ERR LOG] 2025-12-04 16:40:56 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: column a.image_url does not exist
+[ERR LOG] 2025-12-04 16:55:51 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 16:55:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 16:55:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 16:55:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 16:55:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 16:56:04 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to fetch agents: pq: relation "agents" does not exist
+[ERR LOG] 2025-12-04 17:01:04 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of oioi@fugu.cafe not found
+[ERR LOG] 2025-12-04 17:01:04 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of oioi@fugu.cafe not found
+[ERR LOG] 2025-12-04 17:01:05 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of oioi@fugu.cafe not found
+[ERR LOG] 2025-12-04 17:01:06 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of oioi@fugu.cafe not found
+[ERR LOG] 2025-12-04 17:13:18 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:13:20 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:13:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:13:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:13:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:13:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/all -> Failed to scan agent: sql: Scan error on column index 3, name "image_url": converting NULL to string is unsupported
+[ERR LOG] 2025-12-04 17:17:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 17:34:33 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 18:28:53 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 18:59:14 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 19:07:18 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:07:18 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:07:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:07:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:13:06 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:13:07 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:13:20 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 19:13:30 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Incorrect password of oioi@fugu.cafe
+[ERR LOG] 2025-12-04 19:13:30 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 19:13:35 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Incorrect password of oioi@fugu.cafe
+[ERR LOG] 2025-12-04 19:13:35 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 19:14:15 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of prikito@gmai.com not found
+[ERR LOG] 2025-12-04 19:14:15 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-04 19:14:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:14:25 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:24:59 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of prikito@gmai.com not found
+[ERR LOG] 2025-12-04 19:24:59 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of prikito@gmai.com not found
+[ERR LOG] 2025-12-04 19:25:06 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Failed to fetch categories: pq: syntax error at or near "FROM"
+[ERR LOG] 2025-12-04 19:26:15 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:26:16 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:26:24 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:26:24 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/categories -> Invalid UUID in token.
+[ERR LOG] 2025-12-04 19:28:20 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/create -> Invalid body request
+[ERR LOG] 2025-12-04 19:28:52 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/create -> Invalid body request
+[ERR LOG] 2025-12-04 19:31:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/create -> Failed to create agent: sql: converting argument $1 type: unsupported type map[string]interface {}, a map
+[ERR LOG] 2025-12-04 20:00:18 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 20:00:48 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/create -> Failed to create agent: pq: column "category_system_preset" of relation "agent_systems" does not exist
+[ERR LOG] 2025-12-04 20:03:45 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/create -> Failed to create agent: sql: Scan error on column index 3, name "coalesce": unsupported Scan, storing driver.Value type <nil> into type *time.Time
+[ERR LOG] 2025-12-04 21:01:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 21:16:55 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 21:44:13 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 21:44:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:44:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:44:29 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:44:29 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:44:29 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:47:47 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:47:48 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:47:49 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:50:52 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:53:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:53:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 21:53:40 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/agents/:agent_uuid -> Invalid agent_uuid param
+[ERR LOG] 2025-12-04 23:28:13 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-04 23:57:00 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 00:15:28 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 00:30:54 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 00:46:12 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 01:02:30 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 01:18:54 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 01:38:20 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 01:56:18 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 02:45:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/chat/send-new-message -> Missing token.
+[ERR LOG] 2025-12-05 02:45:54 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 03:25:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token

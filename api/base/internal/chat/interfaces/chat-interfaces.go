@@ -11,6 +11,7 @@ type ChatServiceITF interface {
 	citf.Common[d.Chat]
 	SendMessage(gctx *gin.Context, data *d.Message, authUUID string, streamCallback func(chunk string)) error
 	InitChat(gctx *gin.Context, data *d.Chat, streamCallback func(chunk string)) error
+	Cleanup()
 }
 
 type ChatRepositoryITF interface {
