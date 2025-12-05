@@ -42,7 +42,7 @@ func main() {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:8080"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -50,20 +50,32 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	public := r.Group("/api/v1")
+	{
+		agents := public.Group("/agents")
+		{
+			agents.POST("/all", agentHdlr.Fetch)
+			agents.GET("/:agent_uuid", agentHdlr.GetByID)
+		}
+
+	}
+
 	auth := r.Group("/api/v1/auth")
 	{
 		auth.POST("/create", authHdlr.Create)
 		auth.POST("/login", authHdlr.Login)
-		auth.GET("/refresh", authHdlr.Refresh)
+		auth.GET("/check", authHdlr.Check)
+		auth.POST("/logout", authHdlr.Logout)
+		auth.POST("/refresh", authHdlr.Refresh)
 	}
 
 	api := r.Group("/api/v1", m.AuthMiddleware())
 	{
 		agents := api.Group("/agents")
 		{
-			agents.POST("/all", agentHdlr.Fetch)
 			agents.POST("/create", agentHdlr.Create)
-			agents.POST("/get", agentHdlr.GetByID)
+			agents.GET("/categories", agentHdlr.FetchCategories)
+			agents.POST("/my-projects", agentHdlr.FetchByLoggedAuth)
 		}
 
 		chat := api.Group("/chat")
@@ -73,5 +85,5 @@ func main() {
 		}
 	}
 
-	r.Run(":8080")
+	r.Run(":8000")
 }

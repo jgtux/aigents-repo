@@ -24,9 +24,19 @@ func NewAgentRepository(db *sql.DB) agitf.AgentRepositoryITF {
 
 
 func (r *AgentRepository) Create(gctx *gin.Context, data *d.Agent) error {
+	systemPresetJSON, err := json.Marshal(data.AgentConfig.AgentSystem.SystemPreset)
+	if err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusInternalServerError,
+			"(R) Could not marshal system preset.",
+			fmt.Sprintf("Failed to marshal system_preset: %s", err.Error()))
+		return err
+	}
+
 	query := `
 	WITH ins_system AS (
-		INSERT INTO agent_systems (category_system_preset)
+		INSERT INTO agent_systems (system_preset)
 		VALUES ($1)
 		RETURNING agent_system_uuid
 	),
@@ -47,12 +57,12 @@ func (r *AgentRepository) Create(gctx *gin.Context, data *d.Agent) error {
 		auth_uuid
 	)
 	VALUES ($4, $5, $6, (SELECT agent_config_uuid FROM ins_config), $7)
-	RETURNING agent_uuid, created_at, updated_at, COALESCE(deleted_at, NULL);
+	RETURNING agent_uuid, created_at, updated_at, COALESCE(deleted_at,'0001-01-01 00:00:00');
 	`
 
-	err := r.db.QueryRow(
+	err = r.db.QueryRow(
 		query,
-		data.AgentConfig.AgentSystem.SystemPreset, // $1
+		systemPresetJSON, // $1
 		data.AgentConfig.Category.CategoryID,      // $2
 		data.AgentConfig.CategoryPresetEnabled,    // $3
 		data.Name,                                 // $4
@@ -160,13 +170,13 @@ func (r *AgentRepository) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Ag
 		a.agent_uuid,
 		a.name,
 		a.description,
-		a.image_url,
+		COALESCE(a.image_url, '') AS image_url,
 		a.auth_uuid,
 		ac.category_id,
 		ac.category_name,
 		a.created_at,
 		a.updated_at,
-                COALESCE(deleted_at, TIMESTAMP '0001-01-01 00:00:00')
+    COALESCE(deleted_at, TIMESTAMP '0001-01-01 00:00:00')
 	FROM agents a
 	INNER JOIN agents_config acfg ON a.agent_config_uuid = acfg.agent_config_uuid
 	INNER JOIN agent_categories ac ON acfg.category_id = ac.category_id
@@ -300,6 +310,135 @@ func (r *AgentRepository) GetAgentByUUID(gctx *gin.Context, agentUUID string) (*
 	}
 
 	return &data, nil
+}
+
+func (r *AgentRepository) FetchCategories(gctx *gin.Context) ([]d.AgentCategory, error) {
+	query := `
+	SELECT
+		category_id,
+		category_name,
+		created_at
+	FROM agent_categories
+	ORDER BY category_name ASC;
+	`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusInternalServerError,
+			"(R) Could not fetch categories.",
+			fmt.Sprintf("Failed to fetch categories: %s", err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var categories []d.AgentCategory
+
+	for rows.Next() {
+		var category d.AgentCategory
+
+		err := rows.Scan(
+			&category.CategoryID,
+			&category.CategoryName,
+			&category.CreatedAt,
+		)
+		if err != nil {
+			err = c_at.AbortAndBuildErrLogAtom(
+				gctx,
+				http.StatusInternalServerError,
+				"(R) Could not fetch categories.",
+				fmt.Sprintf("Failed to scan category: %s", err.Error()))
+			return nil, err
+		}
+
+		categories = append(categories, category)
+	}
+
+	if err = rows.Err(); err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusInternalServerError,
+			"(R) Could not fetch categories.",
+			fmt.Sprintf("Row iteration failed: %s", err.Error()))
+		return nil, err
+	}
+
+	return categories, nil
+}
+
+// FetchAgentsByLoggedAuth retrieves all agents created by a specific authenticated user
+func (r *AgentRepository) FetchAgentsByLoggedAuth(gctx *gin.Context, authUUID string, limit, offset uint64) ([]d.Agent, error) {
+	query := `
+	SELECT
+		a.agent_uuid,
+		a.name,
+		a.description,
+		COALESCE(a.image_url, '') AS image_url,
+		a.auth_uuid,
+		ac.category_id,
+		ac.category_name,
+		a.created_at,
+		a.updated_at,
+		COALESCE(a.deleted_at, TIMESTAMP '0001-01-01 00:00:00')
+	FROM agents a
+	INNER JOIN agents_config acfg ON a.agent_config_uuid = acfg.agent_config_uuid
+	INNER JOIN agent_categories ac ON acfg.category_id = ac.category_id
+	WHERE a.auth_uuid = $1 AND a.deleted_at IS NULL
+	ORDER BY a.created_at DESC
+	LIMIT $2 OFFSET $3;
+	`
+
+	rows, err := r.db.Query(query, authUUID, limit, offset)
+	if err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusInternalServerError,
+			"(R) Could not fetch user agents.",
+			fmt.Sprintf("Failed to fetch agents for auth_uuid %s: %s", authUUID, err.Error()))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var agents []d.Agent
+
+	for rows.Next() {
+		var agent d.Agent
+
+		err := rows.Scan(
+			&agent.AgentUUID,
+			&agent.Name,
+			&agent.Description,
+			&agent.ImageURL,
+			&agent.AuthUUID,
+			&agent.AgentConfig.Category.CategoryID,
+			&agent.AgentConfig.Category.CategoryName,
+			&agent.CreatedAt,
+			&agent.UpdatedAt,
+			&agent.DeletedAt,
+		)
+		if err != nil {
+			err = c_at.AbortAndBuildErrLogAtom(
+				gctx,
+				http.StatusInternalServerError,
+				"(R) Could not fetch user agents.",
+				fmt.Sprintf("Failed to scan agent: %s", err.Error()))
+			return nil, err
+		}
+
+		agents = append(agents, agent)
+	}
+
+	if err = rows.Err(); err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusInternalServerError,
+			"(R) Could not fetch user agents.",
+			fmt.Sprintf("Row iteration failed: %s", err.Error()))
+		return nil, err
+	}
+
+	return agents, nil
 }
 
 func (r *AgentRepository) FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error) {

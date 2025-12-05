@@ -7,77 +7,67 @@ import Create from '@/pages/Create.vue'
 import Login from '@/pages/Login.vue'
 import Signup from '@/pages/Signup.vue'
 import Chat from '@/pages/Chat.vue'
+import { checkAuth } from '@/api/auth'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home,
-    meta: {
-      title: 'AIgents Home'
-    }
+    meta: { title: 'AIgents Home' }
   },
   {
     path: '/about',
     name: 'About',
     component: About,
-    meta: {
-      title: 'AIgents About Us'
-    }
+    meta: { title: 'AIgents About Us' }
   },
   {
     path: '/agents',
     name: 'Agents',
     component: Agents,
-    meta: {
-      title: 'AIgents - Agents'
-    }
+    meta: { title: 'AIgents - Agents' }
   },
   {
     path: '/myprojects',
     name: 'Myprojects',
     component: Myprojects,
-    meta: {
+    meta: { 
       title: 'AIgents - My Projects',
-      requiresAuth: true // Página privada
+      requiresAuth: true
     }
   },
   {
     path: '/create',
     name: 'Create',
     component: Create,
-    meta: {
+    meta: { 
       title: 'Create Agent - AIgents',
-      requiresAuth: true // Página privada
+      requiresAuth: true
     }
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: {
-      title: 'AIgents Log-in'
-    }
+    meta: { title: 'AIgents Log-in' }
   },
   {
     path: '/signup',
     name: 'Signup',
     component: Signup,
-    meta: {
-      title: 'AIgents Sign-up'
-    }
+    meta: { title: 'AIgents Sign-up' }
   },
   {
-    path: '/chat/:chat_uuid',
+    path: '/chat/:agent_uuid',
     name: 'Chat',
     component: Chat,
-    meta: {
+    meta: { 
       title: 'Chat - AIgents',
-      requiresAuth: true // probably private
+      requiresAuth: true
     }
   },
   {
-    // Rota 404 - Redireciona para Home se a página não existir
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }
@@ -86,7 +76,6 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
-  // Scroll para o topo ao mudar de página
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition
@@ -98,49 +87,30 @@ const router = createRouter({
 
 // Navigation Guard - Protege rotas que requerem autenticação
 router.beforeEach(async (to, from, next) => {
+  console.log('=== NAVIGATION GUARD ===')
+  console.log('From:', from.path)
+  console.log('To:', to.path)
+  
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  console.log('Requires auth:', requiresAuth)
   
   if (requiresAuth) {
+    console.log('Checking authentication...')
     try {
-      // Verifica autenticação fazendo uma requisição ao backend
-      const response = await fetch('/api/auth/check', {
-        method: 'GET',
-        credentials: 'include', // Importante: envia cookies HTTP-only
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (response.ok) {
-        // Usuário autenticado
-        next()
-      } else {
-        // Não autenticado, redireciona para login
-        next('/login')
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      next('/login')
-    }
-  } else if (to.path === '/login' || to.path === '/signup') {
-    // Opcional: verifica se já está autenticado antes de mostrar login/signup
-    try {
-      const response = await fetch('/api/auth/check', {
-        method: 'GET',
-        credentials: 'include'
-      })
-      
-      if (response.ok) {
-        // Já está autenticado, redireciona para home
-        next('/')
-      } else {
-        next()
-      }
-    } catch (error) {
-      // Erro na verificação, permite acesso ao login/signup
+      const result = await checkAuth()
+      console.log('Auth check result:', result)
+      console.log('✅ User authenticated, allowing access')
       next()
+    } catch (error) {
+      console.log('❌ Auth check failed:', error.message)
+      console.log('Redirecting to /login with redirect:', to.fullPath)
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
     }
   } else {
+    console.log('Public route, allowing access')
     next()
   }
 })

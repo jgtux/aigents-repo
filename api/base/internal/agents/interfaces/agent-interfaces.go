@@ -10,10 +10,14 @@ import (
 type AgentServiceITF interface {
 	citf.Common[d.Agent]
 	FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error)
+	FetchAgentsByLoggedAuth(gctx *gin.Context, authUUID string, limit, offset uint64) ([]d.Agent, error)
+	FetchCategories(gctx *gin.Context) ([]d.AgentCategory, error)
 }
 
 type AgentRepositoryITF interface {
 	citf.Common[d.Agent]
+	FetchAgentsByLoggedAuth(gctx *gin.Context, authUUID string, limit, offset uint64) ([]d.Agent, error)
+	FetchCategories(gctx *gin.Context) ([]d.AgentCategory, error)
 	FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error)
 	GetAgentByUUID(gctx *gin.Context, agentUUID string) (*d.Agent, error)
 }

@@ -58,6 +58,7 @@
                 placeholder="Nome do seu agente"
                 aria-required="true"
                 v-model="agent.name"
+                :disabled="loading"
               >
             </article>
 
@@ -68,15 +69,17 @@
                 class="input__criar" 
                 required 
                 aria-required="true"
-                v-model="agent.category"
+                v-model="agent.categoryId"
+                :disabled="loading || loadingCategories"
               >
-                <option value="">Selecione uma categoria</option>
-                <option value="programing">Programing</option>
-                <option value="images">Images</option>
-                <option value="videos">Videos</option>
-                <option value="texts">Texts</option>
-                <option value="music">Music</option>
-                <option value="other">Other</option>
+                <option value="">{{ loadingCategories ? 'Carregando...' : 'Selecione uma categoria' }}</option>
+                <option 
+                  v-for="category in categories" 
+                  :key="category.category_id" 
+                  :value="category.category_id"
+                >
+                  {{ category.category_name }}
+                </option>
               </select>
             </article>
 
@@ -90,6 +93,7 @@
                 aria-describedby="url-helper"
                 v-model="agent.imageUrl"
                 @input="handleImagePreview"
+                :disabled="loading"
               >
               <small id="url-helper" class="visually-hidden">Cole a URL completa da imagem do seu agente</small>
               
@@ -121,28 +125,47 @@
                 aria-required="true"
                 aria-describedby="desc-helper"
                 v-model="agent.description"
+                :disabled="loading"
               ></textarea>
               <small id="desc-helper" class="visually-hidden">Descreva as funcionalidades e características do seu agente de IA</small>
             </article>
 
-            <button type="submit" class="btn__criar" aria-label="Criar agente de IA">Criar</button>
+            <button 
+              type="submit" 
+              class="btn__criar" 
+              aria-label="Criar agente de IA"
+              :disabled="loading"
+            >
+              {{ loading ? 'Criando...' : 'Criar' }}
+            </button>
           </fieldset>
         </form>
+
+        <!-- Error Display -->
+        <div v-if="error" class="msg error">
+          {{ error }}
+        </div>
       </section>
     </main>
   </div>
 </template>
 
 <script>
+import api from '@/api/api'
+
 export default {
   name: 'CreatePage',
   data() {
     return {
       searchQuery: '',
       showPreview: false,
+      loading: false,
+      loadingCategories: false,
+      error: null,
+      categories: [],
       agent: {
         name: '',
-        category: '',
+        categoryId: '',
         imageUrl: '',
         description: ''
       }
@@ -160,49 +183,89 @@ export default {
     }
   },
   methods: {
+    async loadCategories() {
+      this.loadingCategories = true
+      this.error = null
+
+      try {
+        const response = await api.get('/agents/categories')
+        
+        if (response.data.status === 200) {
+          this.categories = response.data.data || []
+        } else {
+          this.error = response.data.message || 'Failed to load categories'
+        }
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to load categories. Please try again.'
+        console.error('Error loading categories:', err)
+      } finally {
+        this.loadingCategories = false
+      }
+    },
+
     handleImagePreview() {
-      // Mostrar preview se a URL não estiver vazia e parecer válida
       if (this.agent.imageUrl && this.agent.imageUrl.trim() !== '') {
         this.showPreview = true
       } else {
         this.showPreview = false
       }
     },
+
     handleImageError() {
-      // Esconder preview se a imagem falhar ao carregar
       this.showPreview = false
       console.warn('Failed to load image preview')
     },
-    handleCreateAgent() {
+
+    async handleCreateAgent() {
       // Validar dados antes de enviar
-      if (!this.agent.name || !this.agent.category || !this.agent.description) {
-        alert('Por favor, preencha todos os campos obrigatórios')
+      if (!this.agent.name || !this.agent.categoryId || !this.agent.description) {
+        this.error = 'Por favor, preencha todos os campos obrigatórios'
         return
       }
 
-      // Implementar lógica de criação do agente aqui
-      // Substitua a lógica do criar.js aqui
-      console.log('Creating agent:', this.agent)
+      this.loading = true
+      this.error = null
 
-      // Exemplo: Salvar no backend e redirecionar
-      // await this.saveAgent(this.agent)
-      // this.$router.push('/myprojects')
+      try {
+        const payload = {
+            name: this.agent.name,
+            description: this.agent.description,
+            image_url: this.agent.imageUrl || null,
+            category_id: parseInt(this.agent.categoryId),
+        }
 
-      // Por enquanto, apenas mostrar confirmação
-      alert(`Agente "${this.agent.name}" criado com sucesso!`)
-      
-      // Resetar formulário
-      this.resetForm()
+        const response = await api.post('/agents/create', payload)
+
+        if (response.data.status === 201) {
+          alert(`Agente "${this.agent.name}" criado com sucesso!`)
+          this.resetForm()
+          // Redirecionar para my projects
+          this.$router.push('/myprojects')
+        } else {
+          this.error = response.data.message || 'Failed to create agent'
+        }
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to create agent. Please try again.'
+        console.error('Error creating agent:', err)
+      } finally {
+        this.loading = false
+      }
     },
+
     resetForm() {
       this.agent = {
         name: '',
-        category: '',
+        categoryId: '',
         imageUrl: '',
         description: ''
       }
       this.showPreview = false
+      this.error = null
     }
+  },
+
+  mounted() {
+    this.loadCategories()
   }
 }
 </script>

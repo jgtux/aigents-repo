@@ -51,6 +51,7 @@ func (h *ChatHandler) Create(gctx *gin.Context) {
 	gctx.Header("Cache-Control", "no-cache")
 	gctx.Header("Connection", "keep-alive")
 	gctx.Header("Transfer-Encoding", "chunked")
+	gctx.Header("X-Accel-Buffering", "no")
 
 	flusher, ok := gctx.Writer.(http.Flusher)
 	if !ok {
@@ -64,8 +65,10 @@ func (h *ChatHandler) Create(gctx *gin.Context) {
 	}
 
 	// Create chat with initial message
+	chatUUID := uuid.New().String()
+	
 	chat := &d.Chat{
-		ChatUUID:  uuid.New().String(),
+		ChatUUID:  chatUUID,
 		AuthUUID:  authUUID,
 		AgentUUID: req.AgentUUID,
 		History: []d.Message{
@@ -84,6 +87,10 @@ func (h *ChatHandler) Create(gctx *gin.Context) {
 		},
 	}
 
+	// Send initial test event
+	gctx.SSEvent("test", "connection established")
+	flusher.Flush()
+
 	// Stream callback function
 	streamCallback := func(chunk string) {
 		gctx.SSEvent("message", chunk)
@@ -93,7 +100,8 @@ func (h *ChatHandler) Create(gctx *gin.Context) {
 	// Call service with streaming
 	err := h.s.InitChat(gctx, chat, streamCallback)
 	if err != nil {
-		gctx.SSEvent("error", err.Error())
+		c_at.FeedErrLogToFile(err)
+		gctx.SSEvent("error", "(SSE) Could not initialize chat.")
 		flusher.Flush()
 		return
 	}
@@ -148,6 +156,7 @@ func (h *ChatHandler) SendMessage(gctx *gin.Context) {
 	gctx.Header("Cache-Control", "no-cache")
 	gctx.Header("Connection", "keep-alive")
 	gctx.Header("Transfer-Encoding", "chunked")
+	gctx.Header("X-Accel-Buffering", "no")
 
 	flusher, ok := gctx.Writer.(http.Flusher)
 	if !ok {
@@ -160,6 +169,10 @@ func (h *ChatHandler) SendMessage(gctx *gin.Context) {
 		return
 	}
 
+	// Send initial test event
+	gctx.SSEvent("test", "connection established")
+	flusher.Flush()
+
 	// Stream callback function
 	streamCallback := func(chunk string) {
 		gctx.SSEvent("message", chunk)
@@ -169,7 +182,8 @@ func (h *ChatHandler) SendMessage(gctx *gin.Context) {
 	// Call service with streaming
 	err := h.s.SendMessage(gctx, userMessage, authUUID, streamCallback)
 	if err != nil {
-		gctx.SSEvent("error", err.Error())
+		c_at.FeedErrLogToFile(err)
+		gctx.SSEvent("error", "(SSE) Could not send message.")
 		flusher.Flush()
 		return
 	}

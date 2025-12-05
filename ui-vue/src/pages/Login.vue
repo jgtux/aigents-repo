@@ -5,8 +5,14 @@
         <img src="@/assets/images/Logo_grande.svg" alt="Logo da AIgents"><br>
         <h1 class="titulo__logo"><strong>AIgents</strong></h1>
       </nav>
+
       <nav class="div__formulario">
+        
+        <!-- MENSAGEM DE ERRO (usa msg + error, apenas isso) -->
+        <p v-if="errorMsg" class="msg error">{{ errorMsg }}</p>
+
         <form class="formulario" @submit.prevent="handleLogin">
+          
           <input 
             type="email" 
             placeholder="E-mail" 
@@ -14,6 +20,7 @@
             v-model="email"
             required
           >
+
           <input 
             type="password" 
             placeholder="Password" 
@@ -21,58 +28,92 @@
             v-model="password"
             required
           >
-          <button type="submit" class="botao__login">Log-in</button>
+
+          <button type="submit" class="botao__login" :disabled="loading">
+            {{ loading ? "Logging in..." : "Log-in" }}
+          </button>
+
         </form>
-        <a href="#" class="senha__signup" @click.prevent="handleForgotPassword">Forgot your password?</a>
-        <p class="signup__texto">Don't have an account? 
+
+        <a href="#" class="senha__signup" @click.prevent="handleForgotPassword">
+          Forgot your password?
+        </a>
+
+        <p class="signup__texto">
+          Don't have an account? 
           <router-link to="/signup" class="senha__signup">Sign-up</router-link>
         </p>
+
       </nav>
     </section>
   </div>
 </template>
 
 <script>
+import api from "@/api/api";
+
 export default {
   name: 'LoginPage',
+
   data() {
     return {
-      email: '',
-      password: ''
-    }
+      email: "",
+      password: "",
+      loading: false,
+      errorMsg: ""
+    };
   },
-  metaInfo: {
-    title: 'AIgents Log-in',
-    meta: [
-      { name: 'description', content: 'Log in to AIgents and access your AI agents. Manage your artificial intelligence projects and discover new AI assistants.' },
-      { name: 'keywords', content: 'AIgents login, sign in, AI platform access, user login' },
-      { name: 'author', content: 'AIgents' },
-      { name: 'robots', content: 'noindex, nofollow' },
-      { property: 'og:title', content: 'Login - AIgents' },
-      { property: 'og:description', content: 'Access your AI agents platform' },
-      { property: 'og:type', content: 'website' }
-    ]
-  },
+
   methods: {
-    handleLogin() {
-      // Implementar lógica de login aqui
-      // Substitua a lógica do scriptLogin.js e auth.js aqui
-      console.log('Login attempt:', {
-        email: this.email,
-        password: this.password
-      })
-      
-      // Exemplo de redirecionamento após login bem-sucedido:
-      // this.$router.push('/agents')
+    async handleLogin() {
+      this.errorMsg = "";
+      this.loading = true;
+
+      try {
+        await api.post("/auth/login", {
+          email: this.email,
+          password: this.password
+        });
+
+        this.$router.push("/agents");
+
+      } catch (err) {
+        if (err.response) {
+          switch (err.response.status) {
+            case 400:
+            case 401:
+              this.errorMsg = "Invalid email or password.";
+              break;
+
+            case 429:
+              this.errorMsg = "Too many attempts. Try again later.";
+              break;
+
+            default:
+              this.errorMsg = "Unable to login. Please try again.";
+          }
+        } else {
+          this.errorMsg = "Network error. Check your connection.";
+        }
+
+      } finally {
+        this.loading = false;
+      }
     },
+
     handleForgotPassword() {
-      // Implementar lógica de recuperação de senha
-      console.log('Forgot password clicked')
+      console.log("Forgot password clicked");
     }
   }
-}
+};
 </script>
 
+
 <style scoped>
-/* Global styles are imported in main.js */
+.error-msg {
+  color: #ff4d4d;
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center;
+}
 </style>

@@ -70,36 +70,45 @@ func (h *AgentHandler) Create(gctx *gin.Context) {
 
 }
 
-
-func (h *AgentHandler) GetByID(gctx *gin.Context)  {
-	var req struct {
-		AgentUUID uuid.UUID `json:"agent_uuid" binding:"required"`
-	}
-
-	if err := gctx.ShouldBindJSON(&req); err != nil {
+func (h *AgentHandler) GetByID(gctx *gin.Context) {
+	param := gctx.Param("agent_uuid")
+	agentUUID, err := uuid.Parse(param)
+	if err != nil {
 		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusBadRequest,
-			"(H) Invalid body request or values.",
-			"Invalid body request")
+			"(H) Invalid URL parameter.",
+			"Invalid agent_uuid param")
 		c_at.FeedErrLogToFile(err)
 		return
 	}
 
 	agent := &d.Agent{
-		AgentUUID: req.AgentUUID.String(),
+		AgentUUID: agentUUID.String(),
 	}
-	err := h.s.GetByID(gctx, agent)
+
+	err = h.s.GetByID(gctx, agent)
 	if err != nil {
 		c_at.FeedErrLogToFile(err)
 	}
+
+	data := d.Agent{
+		AgentUUID: agent.AgentUUID,
+		Name: agent.Name,
+		Description: agent.Description,
+		ImageURL: agent.ImageURL,
+	}
+
+	data.AgentConfig.Category.CategoryID = agent.AgentConfig.Category.CategoryID
+	data.AgentConfig.Category.CategoryName = agent.AgentConfig.Category.CategoryName
 
 	c_at.RespAtom[d.Agent](
 		gctx,
 		http.StatusOK,
 		"(*) Data retrivied.",
-		*agent)
+		data)
 }
+
 
 func (h *AgentHandler) Fetch(gctx *gin.Context) {
 	var req struct {
@@ -118,7 +127,7 @@ func (h *AgentHandler) Fetch(gctx *gin.Context) {
 		return
 	}
 
-	data, err := h.s.Fetch(gctx, req.Page, req.PageSize)
+	data, err := h.s.Fetch(gctx, req.PageSize, req.Page)
 	if err != nil {
 		c_at.FeedErrLogToFile(err)
 		return
@@ -130,3 +139,55 @@ func (h *AgentHandler) Fetch(gctx *gin.Context) {
 		data)
 }
 
+func (h *AgentHandler) FetchByLoggedAuth(gctx *gin.Context) {
+	authUUID, ok := m.GetAuthUUID(gctx)
+	if !ok {
+		err := c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Invalid context values.",
+			"Invalid auth_uuid in context!")
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	var req struct {
+		Page uint64 `json:"page"`
+		PageSize uint64 `json:"page_size"`
+	}
+
+	err := gctx.ShouldBindJSON(&req)
+	if  err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusBadRequest,
+			"(H) Invalid body request or values.",
+			"Invalid body request")
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	data, err := h.s.FetchAgentsByLoggedAuth(gctx, authUUID, req.PageSize, req.Page)
+	if err != nil {
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	c_at.RespAtom[[]d.Agent](gctx,
+		http.StatusOK,
+		"(*) Data retrivied",
+		data)
+}
+
+func (h *AgentHandler) FetchCategories(gctx *gin.Context) {
+	data, err := h.s.FetchCategories(gctx)
+	if err != nil {
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	c_at.RespAtom[[]d.AgentCategory](gctx,
+		http.StatusOK,
+		"(*) Data retrivied",
+		data)
+}

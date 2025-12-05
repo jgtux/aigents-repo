@@ -4,31 +4,37 @@ import (
 	d "aigents-base/internal/chat/domain"
 	chitf "aigents-base/internal/chat/interfaces"
 	agitf "aigents-base/internal/agents/interfaces"
+	c_at "aigents-base/internal/common/atoms"
+	"context"
 	"fmt"
 	"sync"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	ws "github.com/gorilla/websocket"
 )
 
-
 type PythonLLMRequest struct {
-	ChatUUID          string      `json:"chat_uuid"`
-	Content           string      `json:"content"`
-	SenderUUID        string      `json:"sender_uuid"`
-	SenderType        string      `json:"sender_type"`
-	ReceiverUUID      string      `json:"receiver_uuid"`
-	ReceiverType      string      `json:"receiver_type"`
-	AgentUUID         string      `json:"agent_uuid"`
-	AgentName         string      `json:"agent_name"`
-	AgentDescription  string      `json:"agent_description"`
-	CategoryID        uint64      `json:"category_id"`
-	SystemPrompt      string      `json:"system_prompt"`
-	ChatHistory       []d.Message `json:"chat_history,omitempty"`
-	SyncMode          string      `json:"sync_mode"` // "auto", "incremental", "full"
+	Command          string      `json:"command,omitempty"`
+	ChatUUID         string      `json:"chat_uuid"`
+	Content          string      `json:"content"`
+	SenderUUID       string      `json:"sender_uuid"`
+	SenderType       string      `json:"sender_type"`
+	ReceiverUUID     string      `json:"receiver_uuid"`
+	ReceiverType     string      `json:"receiver_type"`
+	AgentUUID        string      `json:"agent_uuid"`
+	AgentName        string      `json:"agent_name"`
+	AgentDescription string      `json:"agent_description"`
+	CategoryID       uint64      `json:"category_id"`
+	SystemPrompt     string      `json:"system_prompt"`
+	ChatHistory      []d.Message `json:"chat_history,omitempty"`
+	SyncMode         string      `json:"sync_mode"`
+	AuthUUID         string      `json:"auth_uuid,omitempty"`
 }
 
 type PythonLLMResponse struct {
+	Type               string `json:"type,omitempty"`
+	ConnectionID       string `json:"connection_id,omitempty"`
 	ChatUUID           string `json:"chat_uuid"`
 	AgentUUID          string `json:"agent_uuid"`
 	Content            string `json:"content"`
@@ -38,83 +44,291 @@ type PythonLLMResponse struct {
 	Error              string `json:"error,omitempty"`
 }
 
+type PooledConnection struct {
+	Conn         *ws.Conn
+	ConnectionID string
+	CreatedAt    time.Time
+	LastUsed     time.Time
+	UseCount     int
+	Identified   bool
+}
 
-// Connection pool manages multiple WebSocket connections
 type ConnectionPool struct {
-	wsURL     string
-	pool      chan *ws.Conn
-	mu        sync.Mutex
-	maxConns  int
-	connCount int
+	wsURL           string
+	pool            chan *PooledConnection
+	mu              sync.RWMutex
+	maxConns        int
+	activeConns     map[string]*PooledConnection
+	connTimeout     time.Duration
+	maxConnAge      time.Duration
+	maxUseCount     int
+	identifyTimeout time.Duration
+	closed          bool
+	ctx             context.Context
+	cancel          context.CancelFunc
 }
 
 func NewConnectionPool(wsURL string, size int) *ConnectionPool {
-	return &ConnectionPool{
-		wsURL:    wsURL,
-		pool:     make(chan *ws.Conn, size),
-		maxConns: size,
+	ctx, cancel := context.WithCancel(context.Background())
+	pool := &ConnectionPool{
+		wsURL:           wsURL,
+		pool:            make(chan *PooledConnection, size),
+		maxConns:        size,
+		activeConns:     make(map[string]*PooledConnection),
+		connTimeout:     30 * time.Second,
+		maxConnAge:      10 * time.Minute,
+		maxUseCount:     100,
+		identifyTimeout: 5 * time.Second,
+		ctx:             ctx,
+		cancel:          cancel,
 	}
+
+	go pool.cleanupStaleConnections()
+
+	return pool
 }
 
-// Get a connection from pool or create new one
-func (p *ConnectionPool) Get() (*ws.Conn, error) {
+func (p *ConnectionPool) Get(authUUID string) (*PooledConnection, error) {
+	if p.closed {
+		return nil, fmt.Errorf("connection pool is closed")
+	}
+
 	select {
-	case conn := <-p.pool:
-		// Check if connection is still alive
-		if err := conn.WriteControl(ws.PingMessage, []byte{}, time.Now().Add(time.Second)); err != nil {
-			conn.Close()
-			return p.createConnection()
+	case pooledConn := <-p.pool:
+		if p.isHealthy(pooledConn) {
+			pooledConn.LastUsed = time.Now()
+			pooledConn.UseCount++
+
+			p.mu.Lock()
+			p.activeConns[pooledConn.ConnectionID] = pooledConn
+			p.mu.Unlock()
+
+			return pooledConn, nil
 		}
-		return conn, nil
+
+		pooledConn.Conn.Close()
+
 	default:
-		// Pool empty, create new if under limit
-		p.mu.Lock()
-		defer p.mu.Unlock()
-
-		if p.connCount < p.maxConns {
-			return p.createConnection()
-		}
-
-		// Wait for available connection
-		return <-p.pool, nil
 	}
+
+	p.mu.Lock()
+	currentCount := len(p.activeConns)
+	if currentCount >= p.maxConns {
+		p.mu.Unlock()
+		select {
+		case pooledConn := <-p.pool:
+			if p.isHealthy(pooledConn) {
+				pooledConn.LastUsed = time.Now()
+				pooledConn.UseCount++
+				p.mu.Lock()
+				p.activeConns[pooledConn.ConnectionID] = pooledConn
+				p.mu.Unlock()
+				return pooledConn, nil
+			}
+			pooledConn.Conn.Close()
+			return nil, fmt.Errorf("all connections are unhealthy")
+		case <-time.After(10 * time.Second):
+			return nil, fmt.Errorf("timeout waiting for available connection")
+		}
+	}
+	p.mu.Unlock()
+
+	return p.createConnection(authUUID)
 }
 
-// Return connection to pool
-func (p *ConnectionPool) Put(conn *ws.Conn) {
-	if conn == nil {
+func (p *ConnectionPool) createConnection(authUUID string) (*PooledConnection, error) {
+	dialer := ws.DefaultDialer
+	dialer.HandshakeTimeout = 10 * time.Second
+
+	conn, _, err := dialer.Dial(p.wsURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial: %w", err)
+	}
+
+	connectionID := fmt.Sprintf("go-%d", time.Now().UnixNano())
+
+	pooledConn := &PooledConnection{
+		Conn:         conn,
+		ConnectionID: connectionID,
+		CreatedAt:    time.Now(),
+		LastUsed:     time.Now(),
+		UseCount:     0,
+		Identified:   false,
+	}
+
+	if err := p.identifyConnection(pooledConn, authUUID); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("failed to identify connection: %w", err)
+	}
+
+	p.mu.Lock()
+	p.activeConns[connectionID] = pooledConn
+	p.mu.Unlock()
+
+	return pooledConn, nil
+}
+
+func (p *ConnectionPool) identifyConnection(pooledConn *PooledConnection, authUUID string) error {
+	identifyMsg := PythonLLMRequest{
+		Command:  "identify",
+		AuthUUID: authUUID,
+	}
+
+	pooledConn.Conn.SetWriteDeadline(time.Now().Add(p.identifyTimeout))
+	if err := pooledConn.Conn.WriteJSON(identifyMsg); err != nil {
+		return fmt.Errorf("failed to send identify: %w", err)
+	}
+	pooledConn.Conn.SetWriteDeadline(time.Time{})
+
+	pooledConn.Conn.SetReadDeadline(time.Now().Add(p.identifyTimeout))
+	var response PythonLLMResponse
+	if err := pooledConn.Conn.ReadJSON(&response); err != nil {
+		return fmt.Errorf("failed to read identify response: %w", err)
+	}
+	pooledConn.Conn.SetReadDeadline(time.Time{})
+
+	if response.Type != "identified" {
+		return fmt.Errorf("unexpected response type: %s", response.Type)
+	}
+
+	pooledConn.Identified = true
+
+	return nil
+}
+
+func (p *ConnectionPool) isHealthy(pooledConn *PooledConnection) bool {
+	if time.Since(pooledConn.CreatedAt) > p.maxConnAge {
+		return false
+	}
+
+	if pooledConn.UseCount >= p.maxUseCount {
+		return false
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	if err := pooledConn.Conn.WriteControl(ws.PingMessage, []byte{}, deadline); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func (p *ConnectionPool) Put(pooledConn *PooledConnection) {
+	if pooledConn == nil || p.closed {
+		return
+	}
+
+	p.mu.Lock()
+	delete(p.activeConns, pooledConn.ConnectionID)
+	p.mu.Unlock()
+
+	if !p.isHealthy(pooledConn) {
+		pooledConn.Conn.Close()
 		return
 	}
 
 	select {
-	case p.pool <- conn:
-		// Successfully returned to pool
+	case p.pool <- pooledConn:
 	default:
-		// Pool full, close connection
-		conn.Close()
-		p.mu.Lock()
-		p.connCount--
-		p.mu.Unlock()
+		pooledConn.Conn.Close()
 	}
 }
 
-func (p *ConnectionPool) createConnection() (*ws.Conn, error) {
-	conn, _, err := ws.DefaultDialer.Dial(p.wsURL, nil)
-	if err != nil {
-		return nil, err
+func (p *ConnectionPool) Discard(pooledConn *PooledConnection) {
+	if pooledConn == nil {
+		return
 	}
-	p.connCount++
-	return conn, nil
+
+	p.mu.Lock()
+	delete(p.activeConns, pooledConn.ConnectionID)
+	p.mu.Unlock()
+
+	pooledConn.Conn.Close()
+}
+
+func (p *ConnectionPool) cleanupStaleConnections() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-p.ctx.Done():
+			return
+		case <-ticker.C:
+			p.mu.Lock()
+			now := time.Now()
+			stale := make([]string, 0)
+
+			for id, conn := range p.activeConns {
+				if now.Sub(conn.LastUsed) > 5*time.Minute {
+					stale = append(stale, id)
+				}
+			}
+
+			for _, id := range stale {
+				conn := p.activeConns[id]
+				delete(p.activeConns, id)
+				conn.Conn.Close()
+			}
+			p.mu.Unlock()
+
+			poolSize := len(p.pool)
+			for i := 0; i < poolSize; i++ {
+				select {
+				case conn := <-p.pool:
+					if !p.isHealthy(conn) {
+						conn.Conn.Close()
+					} else {
+						select {
+						case p.pool <- conn:
+						default:
+							conn.Conn.Close()
+						}
+					}
+				default:
+					break
+				}
+			}
+		}
+	}
 }
 
 func (p *ConnectionPool) Close() {
+	p.mu.Lock()
+	if p.closed {
+		p.mu.Unlock()
+		return
+	}
+	p.closed = true
+	p.mu.Unlock()
+
+	p.cancel()
+
+	p.mu.Lock()
+	for id, conn := range p.activeConns {
+		conn.Conn.Close()
+		delete(p.activeConns, id)
+	}
+	p.mu.Unlock()
+
 	close(p.pool)
 	for conn := range p.pool {
-		conn.Close()
+		conn.Conn.Close()
 	}
 }
 
-// ChatService with connection pool
+func (p *ConnectionPool) GetStats() map[string]interface{} {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return map[string]interface{}{
+		"max_connections":    p.maxConns,
+		"active_connections": len(p.activeConns),
+		"pooled_connections": len(p.pool),
+		"pool_capacity":      cap(p.pool),
+	}
+}
+
 type ChatService struct {
 	r             chitf.ChatRepositoryITF
 	agr           agitf.AgentRepositoryITF
@@ -132,50 +346,54 @@ func NewChatService(repo chitf.ChatRepositoryITF, agrepo agitf.AgentRepositoryIT
 }
 
 func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID string, streamCallback func(chunk string)) error {
-	// Get connection from pool
-	conn, err := s.connPool.Get()
+	pooledConn, err := s.connPool.Get(authUUID)
 	if err != nil {
-		return fmt.Errorf("failed to get connection: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not connect to AI service. Failed to get connection: %s", err.Error()))
+		return err
 	}
 
-	// Connection is exclusive to this goroutine now
-	// Return it when done (not in defer to handle errors properly)
-	returnConn := true
+	shouldReturn := true
 	defer func() {
-		if returnConn {
-			s.connPool.Put(conn)
+		if shouldReturn {
+			s.connPool.Put(pooledConn)
 		} else {
-			conn.Close()
+			s.connPool.Discard(pooledConn)
 		}
 	}()
 
-	chat := &d.Chat{ ChatUUID: data.ChatUUID }
-	err = s.r.GetByID(gctx, chat)
+	chat := &d.Chat{ChatUUID: data.ChatUUID}
+	if err := s.r.GetByID(gctx, chat); err != nil {
+		return err
+	}
+
+	agent, err := s.agr.GetAgentByUUID(gctx, chat.AgentUUID)
 	if err != nil {
 		return err
 	}
 
-	// 2. Get agent configuration
-	agent, err := s.agr.GetAgentByUUID(gctx, chat.AgentUUID)
-	if err != nil {
-		return fmt.Errorf("failed to get agent: %w", err)
-	}
+	data.ReceiverUUID = agent.AgentUUID
+	data.ReceiverType = "AGENT"
 
-	// 3. Get chat history
-	chat.History, err = s.r.GetChatHistory(gctx, chat.ChatUUID, s.lastMsgsLimit)
-	if err != nil {
-		return fmt.Errorf("failed to get chat history: %w", err)
-	}
-
-	// 4. Determine sync mode
-	syncMode := s.determineChatHistoryStrategy(chat, uint64(len(chat.History)))
-
-	// 5. Save user message to DB first
 	if err := s.r.AttachMessage(gctx, data); err != nil {
-		return fmt.Errorf("failed to save user message: %w", err)
+		return err
 	}
 
-	// 6. Extract system prompt
+	chat.History, err = s.r.GetChatHistory(gctx, chat.ChatUUID, s.lastMsgsLimit+1)
+	if err != nil {
+		return err
+	}
+
+	historyForPython := make([]d.Message, 0, len(chat.History))
+	for _, msg := range chat.History {
+		if msg.MessageUUID != data.MessageUUID {
+			historyForPython = append(historyForPython, msg)
+		}
+	}
+
+	syncMode := s.determineChatHistoryStrategy(chat, uint64(len(historyForPython)))
+
 	systemPrompt := "You are a helpful assistant."
 	if agent.AgentConfig.AgentSystem.SystemPreset != nil {
 		if prompt, ok := agent.AgentConfig.AgentSystem.SystemPreset["system_prompt"].(string); ok {
@@ -183,7 +401,6 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 		}
 	}
 
-	// 7. Build request for Python
 	request := PythonLLMRequest{
 		ChatUUID:         data.ChatUUID,
 		Content:          data.MessageContent.Content,
@@ -196,39 +413,48 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 		AgentDescription: agent.Description,
 		CategoryID:       1,
 		SystemPrompt:     systemPrompt,
-		ChatHistory:      chat.History,
+		ChatHistory:      historyForPython,
 		SyncMode:         syncMode,
 	}
 
-	// 8. Send request to Python
-	if err := conn.WriteJSON(request); err != nil {
-		returnConn = false // Connection broken, don't return to pool
-		return fmt.Errorf("failed to send request: %w", err)
+	pooledConn.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+	if err := pooledConn.Conn.WriteJSON(request); err != nil {
+		shouldReturn = false
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("AI service is unavailable. Failed to send request to Python service: %s", err.Error()))
+		return err
 	}
+	pooledConn.Conn.SetWriteDeadline(time.Time{})
 
-	// 9. Stream response chunks
 	var agentMessageUUID string
 	var messageContent d.MessageContent
 
 	for {
+		pooledConn.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
 		var response PythonLLMResponse
-		err = conn.ReadJSON(&response)
+		err = pooledConn.Conn.ReadJSON(&response)
 		if err != nil {
-			returnConn = false // Connection broken
-			return fmt.Errorf("failed to read response: %w", err)
+			shouldReturn = false
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("Failed to receive AI response. Failed to read response from Python service: %s", err.Error()))
+			return err
 		}
 
 		if response.Error != "" {
-			return fmt.Errorf("python service error: %s", response.Error)
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("AI service encountered an error. Python service error: %s", response.Error))
+			return err
 		}
 
 		if response.Partial {
-			// Stream chunk to client
 			if streamCallback != nil {
 				streamCallback(response.Content)
 			}
 		} else {
-			// Final response
 			messageContent.Content = response.Content
 			messageContent.MessageContentUUID = response.MessageContentUUID
 			agentMessageUUID = response.MessageUUID
@@ -236,7 +462,8 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 		}
 	}
 
-	// 10. Save agent response to DB
+	pooledConn.Conn.SetReadDeadline(time.Time{})
+
 	agentMsg := &d.Message{
 		MessageUUID:    agentMessageUUID,
 		SenderUUID:     agent.AgentUUID,
@@ -249,7 +476,7 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 	}
 
 	if err := s.r.AttachMessage(gctx, agentMsg); err != nil {
-		return fmt.Errorf("failed to save agent message: %w", err)
+		return err
 	}
 
 	*data = *agentMsg
@@ -257,48 +484,58 @@ func (s *ChatService) SendMessage(gctx *gin.Context, data *d.Message, authUUID s
 }
 
 func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback func(chunk string)) error {
-	// Validate that at least one message is provided
 	if len(data.History) == 0 {
-		return fmt.Errorf("at least one message is required to create a chat")
+		err := c_at.BuildErrLogAtom(
+			gctx,
+			"At least one message is required.")
+		return err
 	}
 
-	// Get connection from pool
-	conn, err := s.connPool.Get()
+	pooledConn, err := s.connPool.Get(data.AuthUUID)
 	if err != nil {
-		return fmt.Errorf("failed to get connection: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not connect to AI service. Failed to get connection: %s", err.Error()))
+		return err
 	}
 
-	// Connection is exclusive to this goroutine now
-	returnConn := true
+	shouldReturn := true
 	defer func() {
-		if returnConn {
-			s.connPool.Put(conn)
+		if shouldReturn {
+			s.connPool.Put(pooledConn)
 		} else {
-			conn.Close()
+			s.connPool.Discard(pooledConn)
 		}
 	}()
 
-	// 1. Create the chat in the database first
-	if err := s.r.Create(gctx, data); err != nil {
-		return fmt.Errorf("failed to create chat: %w", err)
+	now := time.Now()
+	if data.CreatedAt.IsZero() {
+		data.CreatedAt = now
+	}
+	if data.UpdatedAt.IsZero() {
+		data.UpdatedAt = now
 	}
 
-	// 2. Get agent configuration
+	if err := s.r.Create(gctx, data); err != nil {
+		return err
+	}
+
 	agent, err := s.agr.GetAgentByUUID(gctx, data.AgentUUID)
 	if err != nil {
-		return fmt.Errorf("failed to get agent: %w", err)
+		return err
 	}
 
-	// 3. Get the first message (user message)
 	userMessage := data.History[0]
 	userMessage.ChatUUID = data.ChatUUID
 
-	// 4. Save user message to DB
-	if err := s.r.AttachMessage(gctx, &userMessage); err != nil {
-		return fmt.Errorf("failed to save user message: %w", err)
+	if userMessage.CreatedAt.IsZero() {
+		userMessage.CreatedAt = now
 	}
 
-	// 5. Extract system prompt
+	if err := s.r.AttachMessage(gctx, &userMessage); err != nil {
+		return err
+	}
+
 	systemPrompt := "You are a helpful assistant."
 	if agent.AgentConfig.AgentSystem.SystemPreset != nil {
 		if prompt, ok := agent.AgentConfig.AgentSystem.SystemPreset["system_prompt"].(string); ok {
@@ -306,7 +543,6 @@ func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback f
 		}
 	}
 
-	// 6. Build request for Python (new chat = auto sync mode)
 	request := PythonLLMRequest{
 		ChatUUID:         data.ChatUUID,
 		Content:          userMessage.MessageContent.Content,
@@ -319,39 +555,48 @@ func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback f
 		AgentDescription: agent.Description,
 		CategoryID:       1,
 		SystemPrompt:     systemPrompt,
-		ChatHistory:      []d.Message{}, // Empty for new chat
-		SyncMode:         "auto",        // New chat always uses auto mode
+		ChatHistory:      []d.Message{},
+		SyncMode:         "auto",
 	}
 
-	// 7. Send request to Python
-	if err := conn.WriteJSON(request); err != nil {
-		returnConn = false
-		return fmt.Errorf("failed to send request: %w", err)
+	pooledConn.Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+	if err := pooledConn.Conn.WriteJSON(request); err != nil {
+		shouldReturn = false
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("AI service is unavailable. Failed to send request to Python service: %s", err.Error()))
+		return err
 	}
+	pooledConn.Conn.SetWriteDeadline(time.Time{})
 
-	// 8. Stream response chunks
 	var agentMessageUUID string
 	var messageContent d.MessageContent
 
 	for {
+		pooledConn.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
 		var response PythonLLMResponse
-		err = conn.ReadJSON(&response)
+		err = pooledConn.Conn.ReadJSON(&response)
 		if err != nil {
-			returnConn = false
-			return fmt.Errorf("failed to read response: %w", err)
+			shouldReturn = false
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("Failed to receive AI response. Failed to read response from Python service: %s", err.Error()))
+			return err
 		}
 
 		if response.Error != "" {
-			return fmt.Errorf("python service error: %s", response.Error)
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("AI service encountered an error. Python service error: %s", response.Error))
+			return err
 		}
 
 		if response.Partial {
-			// Stream chunk to client
 			if streamCallback != nil {
 				streamCallback(response.Content)
 			}
 		} else {
-			// Final response
 			messageContent.Content = response.Content
 			messageContent.MessageContentUUID = response.MessageContentUUID
 			agentMessageUUID = response.MessageUUID
@@ -359,7 +604,8 @@ func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback f
 		}
 	}
 
-	// 9. Save agent response to DB
+	pooledConn.Conn.SetReadDeadline(time.Time{})
+
 	agentMsg := &d.Message{
 		MessageUUID:    agentMessageUUID,
 		SenderUUID:     agent.AgentUUID,
@@ -372,10 +618,9 @@ func (s *ChatService) InitChat(gctx *gin.Context, data *d.Chat, streamCallback f
 	}
 
 	if err := s.r.AttachMessage(gctx, agentMsg); err != nil {
-		return fmt.Errorf("failed to save agent message: %w", err)
+		return err
 	}
 
-	// 10. Update the chat's history with both messages
 	data.History = []d.Message{userMessage, *agentMsg}
 
 	return nil
@@ -391,9 +636,26 @@ func (s *ChatService) determineChatHistoryStrategy(data *d.Chat, msgsLen uint64)
 	return "auto"
 }
 
+func (s *ChatService) Create(gctx *gin.Context, data *d.Chat) error {
+	return nil
+}
 
-func (s *ChatService) Create(gctx *gin.Context, data *d.Chat) error { return nil }
-func (s *ChatService) GetByID(gctx *gin.Context, data *d.Chat) error { return s.r.GetByID(gctx, data) }
-func (s *ChatService) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Chat, error) { return s.r.Fetch(gctx, limit, offset) }
-func (s *ChatService) Update(gctx *gin.Context, data *d.Chat) error { return s.r.Update(gctx, data) }
-func (s *ChatService) Delete(gctx *gin.Context, data *d.Chat) error { return s.r.Delete(gctx, data) }
+func (s *ChatService) GetByID(gctx *gin.Context, data *d.Chat) error {
+	return s.r.GetByID(gctx, data)
+}
+
+func (s *ChatService) Fetch(gctx *gin.Context, limit, offset uint64) ([]d.Chat, error) {
+	return s.r.Fetch(gctx, limit, offset)
+}
+
+func (s *ChatService) Update(gctx *gin.Context, data *d.Chat) error {
+	return s.r.Update(gctx, data)
+}
+
+func (s *ChatService) Delete(gctx *gin.Context, data *d.Chat) error {
+	return s.r.Delete(gctx, data)
+}
+
+func (s *ChatService) Cleanup() {
+	s.connPool.Close()
+}

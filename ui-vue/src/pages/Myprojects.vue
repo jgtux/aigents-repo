@@ -42,20 +42,27 @@
     <main class="main__projects">
       <div class="projects__header">
         <h2 class="projects__titulo">Meus Projetos:</h2>
-        <button class="btn__create__project" @click="openModal">
+        <button class="btn__create__project" @click="goToCreate">
           <span class="plus__icon">+</span> novo
         </button>
       </div>
 
       <div class="grid__projects">
-        <!-- Projeto Exemplo 1 -->
+        <!-- Projeto Exemplo -->
         <div 
           class="card__project" 
           v-for="project in filteredProjects" 
           :key="project.id"
           :data-project-id="project.id"
         >
-          <div class="project__placeholder">IA</div>
+          <div class="project__placeholder">
+            <img 
+              class="img__agents"
+              :src="project.image_url || require('@/assets/images/default-agent.png')" 
+              :alt="project.name"
+              @error="handleImageError"
+            >
+          </div>
           <div class="project__info">
             <h3 
               class="project__nome" 
@@ -104,7 +111,7 @@
         </div>
 
         <!-- Card para criar novo projeto -->
-        <div class="card__new__project" @click="openModal">
+        <div class="card__new__project" @click="goToCreate">
           <div class="new__project__content">
             <span class="plus__icon__large">+</span>
             <p>novo</p>
@@ -112,48 +119,22 @@
         </div>
       </div>
     </main>
-
-    <!-- Modal para criar novo projeto -->
-    <div class="modal" v-show="showModal" @click.self="closeModal">
-      <div class="modal__content">
-        <span class="modal__close" @click="closeModal">&times;</span>
-        <h2>Criar Novo Projeto</h2>
-        <form @submit.prevent="createProject">
-          <div class="form__group">
-            <label for="projectName">Nome do Projeto:</label>
-            <input type="text" id="projectName" v-model="newProject.name" required>
-          </div>
-          <div class="form__group">
-            <label for="projectDesc">Descrição:</label>
-            <textarea id="projectDesc" rows="4" v-model="newProject.description" required></textarea>
-          </div>
-          <button type="submit" class="btn__submit">Criar Projeto</button>
-        </form>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
+import api from '@/api/api'
+
 export default {
   name: 'MyprojectsPage',
   data() {
     return {
       searchQuery: '',
-      showModal: false,
-      newProject: {
-        name: '',
-        description: ''
-      },
-      projects: [
-        {
-          id: 'PRJ001',
-          name: 'Agent Name',
-          description: 'Brief description of the AI agent',
-          lastEdited: '24/10/2025',
-          isEditing: false
-        }
-      ]
+      projects: [],
+      loading: false,
+      error: null,
+      currentPage: 0,
+      pageSize: 20
     }
   },
   computed: {
@@ -177,30 +158,49 @@ export default {
       { name: 'robots', content: 'noindex, nofollow' }
     ]
   },
+  mounted() {
+    this.loadProjects()
+  },
   methods: {
+    async loadProjects() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await api.post('/agents/my-projects', {
+          page: this.currentPage,
+          page_size: this.pageSize
+        })
+        
+        // Handle Go Response structure
+        if (response.data.status === 200) {
+          this.projects = (response.data.data || []).map(project => ({
+            id: project.id || project.project_id,
+            name: project.name,
+            description: project.description,
+            image_url: project.image_url,
+            lastEdited: project.last_edited || project.updated_at || new Date().toLocaleDateString('pt-BR'),
+            isEditing: false
+          }))
+        } else {
+          this.error = response.data.message || 'Failed to load projects'
+        }
+        
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to load projects. Please try again.'
+        console.error('Error loading projects:', err)
+      } finally {
+        this.loading = false
+      }
+    },
     handleSearch() {
       // A busca é feita automaticamente através do computed property filteredProjects
     },
-    openModal() {
-      this.showModal = true
+    handleImageError(event) {
+      event.target.src = require('@/assets/images/default-agent.png')
     },
-    closeModal() {
-      this.showModal = false
-      this.newProject = { name: '', description: '' }
-    },
-    createProject() {
-      const newId = `PRJ${String(this.projects.length + 1).padStart(3, '0')}`
-      const today = new Date().toLocaleDateString('pt-BR')
-      
-      this.projects.push({
-        id: newId,
-        name: this.newProject.name,
-        description: this.newProject.description,
-        lastEdited: today,
-        isEditing: false
-      })
-      
-      this.closeModal()
+    goToCreate() {
+      this.$router.push('/create')
     },
     toggleEdit(project) {
       project.isEditing = !project.isEditing

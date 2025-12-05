@@ -5,7 +5,13 @@
         <img src="@/assets/images/Logo_grande.svg" alt="Logo da AIgents"><br>
         <h1 class="titulo__logo"><strong>AIgents</strong></h1>
       </nav>
+
       <nav class="div__formulario">
+
+        <!-- Mensagens -->
+        <p v-if="errorMsg" class="msg error">{{ errorMsg }}</p>
+        <p v-if="successMsg" class="msg success">{{ successMsg }}</p>
+
         <form class="formulario" @submit.prevent="handleSignup">
           <input 
             type="email" 
@@ -28,10 +34,15 @@
             v-model="confirmPassword"
             required
           >
-          <input type="submit" value="Sign-up" class="botao__login">
+
+          <input type="submit" 
+                 :value="loading ? 'Creating...' : 'Sign-up'" 
+                 class="botao__login"
+                 :disabled="loading">
         </form>
+
         <p class="login__texto">
-          Already have an account? 
+          Already have an account?
           <router-link to="/login" class="senha__signup">Log-in</router-link>
         </p>
       </nav>
@@ -40,47 +51,77 @@
 </template>
 
 <script>
+import api from "@/api/api"; // axios configurado
+
 export default {
-  name: 'SignupPage',
+  name: "SignupPage",
+
   data() {
     return {
-      email: '',
-      password: '',
-      confirmPassword: ''
-    }
+      email: "",
+      password: "",
+      confirmPassword: "",
+      loading: false,
+      errorMsg: "",
+      successMsg: "",
+    };
   },
-  metaInfo: {
-    title: 'AIgents Sign-up',
-    meta: [
-      { name: 'description', content: 'Create your AIgents account and start discovering and building AI agents. Join our artificial intelligence platform today.' },
-      { name: 'keywords', content: 'AIgents signup, create account, register AI platform, join AIgents' },
-      { name: 'author', content: 'AIgents' },
-      { name: 'robots', content: 'noindex, nofollow' },
-      { property: 'og:title', content: 'Sign Up - AIgents' },
-      { property: 'og:description', content: 'Create your account and start building AI agents' },
-      { property: 'og:type', content: 'website' }
-    ]
-  },
+
   methods: {
-    handleSignup() {
-      // Validar se as senhas coincidem
+    async handleSignup() {
+      this.errorMsg = "";
+      this.successMsg = "";
+
       if (this.password !== this.confirmPassword) {
-        alert('Passwords do not match!')
-        return
+        this.errorMsg = "Passwords do not match.";
+        return;
       }
-      
-      // Implementar lógica de signup aqui
-      // Substitua a lógica do scriptSign.js e auth.js aqui
-      console.log('Signup attempt:', {
-        email: this.email,
-        password: this.password
-      })
-      
-      // Exemplo de redirecionamento após signup bem-sucedido:
-      // this.$router.push('/login')
+
+      this.loading = true;
+
+      try {
+        await api.post("/auth/create", {
+          email: this.email,
+          password: this.password,
+        });
+
+        this.successMsg = "Account created successfully! Redirecting...";
+        
+        // Espera 1.5s e vai para login
+        setTimeout(() => {
+          this.$router.push("/login");
+        }, 1500);
+
+      } catch (err) {
+        console.error("Signup failed:", err);
+
+        if (err.response) {
+          switch (err.response.status) {
+            case 400:
+              this.errorMsg = "Invalid information. Check the fields.";
+              break;
+
+            case 409:
+              this.errorMsg = "This email is already registered.";
+              break;
+
+            case 500:
+              this.errorMsg = "Internal error. Try again later.";
+              break;
+
+            default:
+              this.errorMsg = "Unable to complete signup.";
+          }
+        } else {
+          this.errorMsg = "Network error. Check your connection.";
+        }
+
+      } finally {
+        this.loading = false;
+      }
     }
   }
-}
+};
 </script>
 
 <style scoped>
