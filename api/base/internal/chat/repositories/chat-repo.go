@@ -3,11 +3,11 @@ package repositories
 import (
 	d "aigents-base/internal/chat/domain"
 	chitf "aigents-base/internal/chat/interfaces"
-	"fmt"
-
+	c_at "aigents-base/internal/common/atoms"
 	"database/sql"
-
+	"fmt"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
@@ -21,78 +21,83 @@ func NewChatRepository(db *sql.DB) chitf.ChatRepositoryITF {
 }
 
 func (r *ChatRepository) Create(gctx *gin.Context, data *d.Chat) error {
-	fmt.Printf("[DEBUG REPO] Creating chat - UUID: %s, AgentUUID: %s, AuthUUID: %s, CreatedAt: %v, UpdatedAt: %v\n",
-		data.ChatUUID, data.AgentUUID, data.AuthUUID, data.CreatedAt, data.UpdatedAt)
-	
-	// Primeiro verifica se o agent e auth existem
 	var agentExists, authExists bool
-	
+
 	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM agents WHERE agent_uuid = $1 AND deleted_at IS NULL)", data.AgentUUID).Scan(&agentExists)
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Error checking agent existence: %v\n", err)
-		return fmt.Errorf("failed to check agent existence: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not verify agent existence. Failed to check agent existence: %s", err.Error()))
+		return err
 	}
-	fmt.Printf("[DEBUG REPO] Agent exists: %v\n", agentExists)
-	
+
 	err = r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM auths WHERE auth_uuid = $1 AND deleted_at IS NULL)", data.AuthUUID).Scan(&authExists)
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Error checking auth existence: %v\n", err)
-		return fmt.Errorf("failed to check auth existence: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not verify auth existence. Failed to check auth existence: %s", err.Error()))
+		return err
 	}
-	fmt.Printf("[DEBUG REPO] Auth exists: %v\n", authExists)
-	
+
 	if !agentExists {
-		return fmt.Errorf("agent with UUID %s does not exist", data.AgentUUID)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Agent not found. Agent with UUID %s does not exist", data.AgentUUID))
+		return err
 	}
+
 	if !authExists {
-		return fmt.Errorf("auth with UUID %s does not exist", data.AuthUUID)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Authentication not found. Auth with UUID %s does not exist", data.AuthUUID))
+		return err
 	}
-	
-	// Tenta inserir o chat
+
 	query := `
 		INSERT INTO chats (chat_uuid, agent_uuid, auth_uuid, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (chat_uuid) DO NOTHING
 		RETURNING chat_uuid
 	`
+
 	var returnedUUID string
-	err = r.db.QueryRowContext(gctx, query,
+	err = r.db.QueryRow(query,
 		data.ChatUUID,
 		data.AgentUUID,
 		data.AuthUUID,
 		data.CreatedAt,
 		data.UpdatedAt,
 	).Scan(&returnedUUID)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Printf("[DEBUG REPO] Chat already exists (conflict), checking if it exists in DB...\n")
-			// Verifica se o chat realmente existe
 			var existingChatUUID string
 			err = r.db.QueryRow("SELECT chat_uuid FROM chats WHERE chat_uuid = $1", data.ChatUUID).Scan(&existingChatUUID)
 			if err != nil {
-				fmt.Printf("[DEBUG REPO] Chat doesn't exist even after conflict: %v\n", err)
-				return fmt.Errorf("chat conflict but doesn't exist: %w", err)
+				err = c_at.BuildErrLogAtom(
+					gctx,
+					fmt.Sprintf("(R) Could not create chat. Chat conflict but doesn't exist: %s", err.Error()))
+				return err
 			}
-			fmt.Printf("[DEBUG REPO] Chat already exists with UUID: %s\n", existingChatUUID)
 			return nil
 		}
-		fmt.Printf("[DEBUG REPO] Failed to create chat: %v\n", err)
-		return fmt.Errorf("failed to create chat: %w", err)
+
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not create chat. Failed to create chat: %s", err.Error()))
+		return err
 	}
-	
-	fmt.Printf("[DEBUG REPO] Chat created successfully with UUID: %s\n", returnedUUID)
+
 	return nil
 }
 
 func (r *ChatRepository) GetByID(gctx *gin.Context, data *d.Chat) error {
-	fmt.Printf("[DEBUG REPO] GetByID - ChatUUID: %s\n", data.ChatUUID)
-	
 	query := `
 		SELECT chat_uuid, agent_uuid, auth_uuid, created_at, updated_at
 		FROM chats
 		WHERE chat_uuid = $1 AND deleted_at IS NULL
 	`
+
 	err := r.db.QueryRow(query, data.ChatUUID).Scan(
 		&data.ChatUUID,
 		&data.AgentUUID,
@@ -100,12 +105,21 @@ func (r *ChatRepository) GetByID(gctx *gin.Context, data *d.Chat) error {
 		&data.CreatedAt,
 		&data.UpdatedAt,
 	)
-	if err != nil {
-		fmt.Printf("[DEBUG REPO] GetByID failed: %v\n", err)
-		return fmt.Errorf("failed to get chat: %w", err)
+
+	if err == sql.ErrNoRows {
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Chat not found. Chat with UUID %s not found", data.ChatUUID))
+		return err
 	}
-	
-	fmt.Printf("[DEBUG REPO] GetByID success - AgentUUID: %s, AuthUUID: %s\n", data.AgentUUID, data.AuthUUID)
+
+	if err != nil {
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not get chat. Failed to get chat: %s", err.Error()))
+		return err
+	}
+
 	return nil
 }
 
@@ -122,33 +136,31 @@ func (r *ChatRepository) Delete(gctx *gin.Context, data *d.Chat) error {
 }
 
 func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error {
-	fmt.Printf("[DEBUG REPO] AttachMessage - MessageUUID: %s, ChatUUID: %s, Sender: %s (%s), Receiver: %s (%s)\n",
-		msg.MessageUUID, msg.ChatUUID, msg.SenderUUID, msg.SenderType, msg.ReceiverUUID, msg.ReceiverType)
-	fmt.Printf("[DEBUG REPO] Message content UUID: %s, Content length: %d\n",
-		msg.MessageContent.MessageContentUUID, len(msg.MessageContent.Content))
-	
-	// Verifica se o chat existe antes de inserir a mensagem
 	var chatExists bool
 	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM chats WHERE chat_uuid = $1)", msg.ChatUUID).Scan(&chatExists)
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Error checking chat existence: %v\n", err)
-		return fmt.Errorf("failed to check chat existence: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not verify chat existence. Failed to check chat existence: %s", err.Error()))
+		return err
 	}
-	fmt.Printf("[DEBUG REPO] Chat exists before insert: %v\n", chatExists)
-	
+
 	if !chatExists {
-		return fmt.Errorf("chat with UUID %s does not exist", msg.ChatUUID)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Chat not found. Chat with UUID %s does not exist", msg.ChatUUID))
+		return err
 	}
-	
-	// Inicia a transação
-	tx, err := r.db.BeginTx(gctx, nil)
+
+	tx, err := r.db.Begin()
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Failed to begin transaction: %v\n", err)
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not begin transaction. Failed to begin transaction: %s", err.Error()))
+		return err
 	}
 	defer tx.Rollback()
 
-	// Insert message content e message em uma única query
 	insertSQL := `
 		WITH inserted_content AS (
 			INSERT INTO message_contents (message_content_uuid, message_content)
@@ -163,7 +175,7 @@ func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error 
 		FROM inserted_content
 	`
 
-	_, err = tx.ExecContext(gctx, insertSQL,
+	_, err = tx.Exec(insertSQL,
 		msg.MessageContent.MessageContentUUID,
 		msg.MessageContent.Content,
 		msg.MessageUUID,
@@ -175,38 +187,37 @@ func (r *ChatRepository) AttachMessage(gctx *gin.Context, msg *d.Message) error 
 		msg.CreatedAt,
 	)
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Failed to insert message: %v\n", err)
-		return fmt.Errorf("failed to insert message: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not attach message. Failed to insert message: %s", err.Error()))
+		return err
 	}
-	fmt.Printf("[DEBUG REPO] Message inserted successfully\n")
 
-	// Atualiza o timestamp do chat
 	updateSQL := `
 		UPDATE chats
 		SET updated_at = NOW()
 		WHERE chat_uuid = $1
 	`
-	result, err := tx.ExecContext(gctx, updateSQL, msg.ChatUUID)
+
+	_, err = tx.Exec(updateSQL, msg.ChatUUID)
 	if err != nil {
-		fmt.Printf("[DEBUG REPO] Failed to update chat timestamp: %v\n", err)
-		return fmt.Errorf("failed to update chat timestamp: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not update chat timestamp. Failed to update chat timestamp: %s", err.Error()))
+		return err
 	}
-	
-	rowsAffected, _ := result.RowsAffected()
-	fmt.Printf("[DEBUG REPO] Chat updated, rows affected: %d\n", rowsAffected)
 
-	// Commit da transação
 	if err = tx.Commit(); err != nil {
-		fmt.Printf("[DEBUG REPO] Failed to commit transaction: %v\n", err)
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("(R) Could not commit transaction. Failed to commit transaction: %s", err.Error()))
+		return err
 	}
 
-	fmt.Printf("[DEBUG REPO] AttachMessage completed successfully\n")
 	return nil
 }
 
 func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limit uint64) ([]d.Message, error) {
-	// FIXED: Get the LAST N messages in correct chronological order
 	query := `
 		SELECT 
 			m.message_uuid,
@@ -231,7 +242,10 @@ func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limi
 
 	rows, err := r.db.Query(query, chatUUID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query chat history: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not fetch chat history. Failed to query chat history: %s", err.Error()))
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -250,14 +264,23 @@ func (r *ChatRepository) GetChatHistory(gctx *gin.Context, chatUUID string, limi
 			&msg.CreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan message: %w", err)
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("Could not fetch chat history. Failed to scan message: %s", err.Error()))
+			return nil, err
 		}
 		msgs = append(msgs, msg)
 	}
 
+	if err = rows.Err(); err != nil {
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not fetch chat history. Row iteration failed: %s", err.Error()))
+		return nil, err
+	}
+
 	return msgs, nil
 }
-
 
 func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, since time.Time, limit uint64) ([]d.Message, error) {
 	query := `
@@ -280,7 +303,10 @@ func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, s
 
 	rows, err := r.db.Query(query, chatUUID, since, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query recent messages: %w", err)
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not fetch recent messages. Failed to query recent messages: %s", err.Error()))
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -299,9 +325,19 @@ func (r *ChatRepository) GetRecentMessages(gctx *gin.Context, chatUUID string, s
 			&msg.CreatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan message: %w", err)
+			err = c_at.BuildErrLogAtom(
+				gctx,
+				fmt.Sprintf("Could not fetch recent messages. Failed to scan message: %s", err.Error()))
+			return nil, err
 		}
 		msgs = append(msgs, msg)
+	}
+
+	if err = rows.Err(); err != nil {
+		err = c_at.BuildErrLogAtom(
+			gctx,
+			fmt.Sprintf("Could not fetch recent messages. Row iteration failed: %s", err.Error()))
+		return nil, err
 	}
 
 	return msgs, nil

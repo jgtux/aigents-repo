@@ -134,3 +134,14 @@
 [ERR LOG] 2025-12-05 02:45:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/chat/send-new-message -> Missing token.
 [ERR LOG] 2025-12-05 02:45:54 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
 [ERR LOG] 2025-12-05 03:25:39 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 07:49:11 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:24:42 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:25:02 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:25:38 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:28:32 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:28:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Incorrect password of oioi@fugu.cafe
+[ERR LOG] 2025-12-05 08:28:41 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/refresh -> Missing refresh token
+[ERR LOG] 2025-12-05 08:52:20 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
+[ERR LOG] 2025-12-05 08:58:50 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of aofejfeaofjeaof@gmail.com not found
+[ERR LOG] 2025-12-05 08:58:50 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/login -> Authentication of aofejfeaofjeaof@gmail.com not found
+[ERR LOG] 2025-12-05 09:49:21 | IP: 127.0.0.1 | UA: Mozilla/5.0 (X11; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0 | P: /api/v1/auth/check -> Missing access token
