@@ -26,8 +26,12 @@ func (s *AgentService) Create(gctx *gin.Context, data *d.Agent) error {
 	return s.r.Create(gctx, data)
 }
 
-func (a *AgentService) FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error) {
-	return []d.Agent{}, nil
+func (s *AgentService) FetchAgentsByLoggedAuth(gctx *gin.Context, authUUID string, limit, offset uint64) ([]d.Agent, error) {
+	return s.r.FetchAgentsByLoggedAuth(gctx, authUUID, limit, offset)
+}
+
+func (s *AgentService) FetchCategories(gctx *gin.Context) ([]d.AgentCategory, error) {
+	return s.r.FetchCategories(gctx)
 }
 
 func (s *AgentService) GetByID(gctx *gin.Context, data *d.Agent) error {
@@ -44,4 +48,8 @@ func (s *AgentService) Update(gctx *gin.Context, data *d.Agent) error {
 
 func (s *AgentService) Delete(gctx *gin.Context, data *d.Agent) error {
 	return s.r.Delete(gctx, data)
+}
+
+func (a *AgentService) FetchWithFilter(gctx *gin.Context, flags []string, limit, offset uint64) ([]d.Agent, error) {
+	return []d.Agent{}, nil
 }

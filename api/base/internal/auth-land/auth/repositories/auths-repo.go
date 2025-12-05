@@ -64,16 +64,21 @@ func (a *AuthRepository) Create(gctx *gin.Context, data *d.Auth) error {
 
 func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 	query := `SELECT auth_uuid,
-                         password,
-                         created_at,
-                         updated_at,
-        	         COALESCE(deleted_at, TIMESTAMP '0001-01-01 00:00:00')
-		 FROM auths
-                  WHERE email = $1;`
+                     password,
+                     role,
+                     created_at,
+                     updated_at,
+                     COALESCE(deleted_at, TIMESTAMP '0001-01-01 00:00:00')
+              FROM auths
+              WHERE email = $1 AND deleted_at IS NULL;`
+
+	var scannedUUID string
+	var scannedRole string
 
 	err := a.db.QueryRow(query, data.Email).Scan(
-		&data.UUID,
+		&scannedUUID,
 		&data.Password,
+		&scannedRole,
 		&data.CreatedAt,
 		&data.UpdatedAt,
 		&data.DeletedAt,
@@ -84,15 +89,16 @@ func (a *AuthRepository) GetByEmail(gctx *gin.Context, data *d.Auth) error {
 			err = fmt.Errorf("ERR_EMAIL_NOT_FOUND")
 			return err
 		}
-
-
 		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusInternalServerError,
 			"(R) Could not find authentication.",
-			fmt.Sprintf("An unknown error ocurred: %s", err.Error()))
+			fmt.Sprintf("An unknown error occurred: %s", err.Error()))
 		return err
 	}
+
+	data.UUID = scannedUUID
+	data.Role = scannedRole
 
 	return nil
 }

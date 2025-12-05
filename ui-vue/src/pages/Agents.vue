@@ -38,28 +38,90 @@
       </ul>
     </header>
     
-    <!-- Busca por categorias implementação futura
-    <nav class="nav__categorias">
-      <ul class="lista__categorias">
-        <li><button class="categoria__item categoria__active">Programming</button></li>
-      </ul>
-    </nav>-->
-    
     <main class="main__agents">
-      <section class="grid__agents">
-        <!-- Os cards serão gerados dinamicamente pelo Vue -->
+      <!-- Loading State -->
+      <div v-if="loading" class="loading__container">
+        <p>Loading agents...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="error__container">
+        <p>{{ error }}</p>
+        <button @click="loadAgents" class="retry__button">Try Again</button>
+      </div>
+
+      <!-- Agents Grid -->
+      <section v-else class="grid__agents">
+        <article 
+          v-for="agent in agents" 
+          :key="agent.agent_uuid"
+          class="card__agent"
+          :data-name="agent.name.toLowerCase()"
+        >
+          <router-link :to="`/chat/${agent.agent_uuid}`">
+            <div class="agent__placeholder">
+              <img 
+                class="img__agents"
+                :src="agent.image_url || require('@/assets/images/default-agent.png')" 
+                :alt="agent.name"
+                @error="handleImageError"
+              >
+            </div>
+            <h3 class="agent__nome">{{ agent.name }}</h3>
+            <p class="agent__descricao">{{ agent.description }}</p>
+          </router-link>
+        </article>
+
+        <!-- Empty State -->
+        <div v-if="agents.length === 0" class="empty__state">
+          <p>No agents found.</p>
+        </div>
       </section>
+
+      <!-- Pagination -->
+      <div v-if="!loading && !error && hasMorePages" class="pagination">
+        <button 
+          @click="previousPage" 
+          :disabled="currentPage === 0"
+          class="pagination__button"
+        >
+          Previous
+        </button>
+        
+        <span class="pagination__info">
+          Page {{ currentPage + 1 }}
+        </span>
+        
+        <button 
+          @click="nextPage" 
+          :disabled="agents.length < pageSize"
+          class="pagination__button"
+        >
+          Next
+        </button>
+      </div>
     </main>
   </div>
 </template>
 
 <script>
+import api from '@/api/api'
+
 export default {
   name: 'AgentsPage',
   data() {
     return {
       searchQuery: '',
-      agents: []
+      agents: [],
+      loading: false,
+      error: null,
+      currentPage: 0,
+      pageSize: 20
+    }
+  },
+  computed: {
+    hasMorePages() {
+      return this.agents.length === this.pageSize || this.currentPage > 0
     }
   },
   metaInfo: {
@@ -74,21 +136,85 @@ export default {
     }
   },
   methods: {
-    handleSearch() {
-      // Implementar lógica de busca aqui
-      console.log('Searching for:', this.searchQuery)
+    async loadAgents() {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await api.post('/agents/all', {
+          page: this.currentPage,
+          page_size: this.pageSize
+        })
+        
+        // Handle Go Response[[]Agent] structure
+        if (response.data.status === 200) {
+          this.agents = response.data.data || []
+        } else {
+          this.error = response.data.message || 'Failed to load agents'
+        }
+        
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Failed to load agents. Please try again.'
+        console.error('Error loading agents:', err)
+      } finally {
+        this.loading = false
+      }
     },
-    loadAgents() {
-      // Aqui você pode carregar os agents de uma API ou dados locais
-      // Substitua a lógica do agents.js aqui
+    
+    handleSearch() {
+      const searchTerm = this.searchQuery.toLowerCase().trim()
+      const cards = document.querySelectorAll('.card__agent')
+
+      cards.forEach(card => {
+        const agentName = card.dataset.name || ''
+        const agentDescription = card.querySelector('.agent__descricao')?.textContent.toLowerCase() || ''
+
+        if (agentName.includes(searchTerm) || agentDescription.includes(searchTerm)) {
+          card.style.display = 'block'
+        } else {
+          card.style.display = 'none'
+        }
+      })
+    },
+    
+    handleImageError(event) {
+      event.target.src = require('@/assets/images/default-agent.png')
+    },
+    
+    nextPage() {
+      if (this.agents.length === this.pageSize) {
+        this.currentPage++
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        this.loadAgents()
+      }
+    },
+    
+    previousPage() {
+      if (this.currentPage > 0) {
+        this.currentPage--
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        this.loadAgents()
+      }
     }
   },
+  
   mounted() {
     this.loadAgents()
+  },
+  
+  beforeUnmount() {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout)
+    }
+  },
+  
+  updated() {
+    // Setup search functionality after DOM update
+    this.$nextTick(() => {
+      if (this.searchQuery) {
+        this.handleSearch()
+      }
+    })
   }
 }
 </script>
-
-<style scoped>
-/* Global styles are imported in main.js */
-</style>

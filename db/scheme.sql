@@ -73,12 +73,12 @@ CREATE TABLE agents (
   agent_uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(128) NOT NULL,
   description VARCHAR(512),
-  image_url VARCHAR(512)
+  image_url VARCHAR(512),
   agent_config_uuid UUID NOT NULL UNIQUE,
   auth_uuid UUID NOT NULL,   -- reference to auths
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP DEFAULT NULL
+  deleted_at TIMESTAMP DEFAULT NULL,
   FOREIGN KEY (agent_config_uuid) REFERENCES agents_config(agent_config_uuid) ON DELETE CASCADE,
   FOREIGN KEY (auth_uuid) REFERENCES auths(auth_uuid) ON DELETE CASCADE
 );

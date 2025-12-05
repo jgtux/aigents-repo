@@ -124,18 +124,59 @@ func (h *AuthHandler) Refresh(gctx *gin.Context) {
 	c_at.RespAtom[*struct{}](gctx, http.StatusOK, "(*) Access token refreshed.", nil)
 }
 
-func (h *AuthHandler) GetByID(gctx *gin.Context) error {
-	return nil
+
+func (h *AuthHandler) Check(gctx *gin.Context) {
+	accessToken, err := gctx.Cookie("access_token")
+	if err != nil {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Missing access token.",
+			"Missing access token",
+		)
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	claims := &m.Claims{}
+	token, err := jwt.ParseWithClaims(accessToken, claims, func(t *jwt.Token) (interface{}, error) {
+		return m.JWTSecret, nil
+	})
+	if err != nil || !token.Valid {
+		err = c_at.AbortAndBuildErrLogAtom(
+			gctx,
+			http.StatusUnauthorized,
+			"(H) Invalid access token.",
+			"Invalid access token",
+		)
+		c_at.FeedErrLogToFile(err)
+		return
+	}
+
+	c_at.RespAtom[*struct{}](
+		gctx,
+		http.StatusOK,
+		"(*) User authenticated.",
+		nil,
+	)
 }
 
-func (h *AuthHandler) Fetch(gctx *gin.Context) error  {
-	return nil
+func (h *AuthHandler) Logout(gctx *gin.Context) {
+	gctx.SetCookie("access_token", "", -1, "/", "", false, true)
+	gctx.SetCookie("refresh_token", "", -1, "/", "", false, true)
+
+	c_at.RespAtom[*struct{}](
+		gctx,
+		http.StatusOK,
+		"(*) Logged out successfully.",
+		nil,
+	)
 }
 
-func (h *AuthHandler) Update(gctx *gin.Context) error {
-	return nil
-}
+func (h *AuthHandler) GetByID(gctx *gin.Context) {}
 
-func (h *AuthHandler) Delete(gctx *gin.Context) error {
-	return nil
-}
+func (h *AuthHandler) Fetch(gctx *gin.Context) {}
+
+func (h *AuthHandler) Update(gctx *gin.Context) {}
+
+func (h *AuthHandler) Delete(gctx *gin.Context) {}

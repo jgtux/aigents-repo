@@ -59,6 +59,9 @@ func (s *AuthService) Comparate(gctx *gin.Context, data *d.Auth) error {
 		return err
 	}
 
+	data.UUID = auth.UUID
+	data.Role = auth.Role
+
 	return nil
 }
 
