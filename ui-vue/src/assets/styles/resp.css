@@ -1,0 +1,18 @@
+.msg {
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.error {
+  background: #ffdddd;
+  color: #b90000;
+  border: 1px solid #ff7a7a;
+}
+
+.success {
+  background: #ddffdd;
+  color: #0a810a;
+  border: 1px solid #6fdd6f;
+}
