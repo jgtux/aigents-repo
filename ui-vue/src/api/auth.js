@@ -64,19 +64,14 @@ export const authService = {
 // Exporta função auxiliar para o router
 export const checkAuth = async () => {
   try {
-    console.log('checkAuth: Making API call...')
     const response = await api.get('/auth/check', { timeout: 5000 })
-    console.log('checkAuth: Response received:', response.status, response.data)
     
     if (response.status === 200) {
-      console.log('checkAuth: Authentication successful')
       return true
     }
     
-    console.log('checkAuth: Unexpected status code')
     throw new Error('Not authenticated')
   } catch (error) {
-    console.log('checkAuth: Error caught:', error.message, error.response?.status)
     // Re-throw para o router guard capturar
     throw new Error('Not authenticated')
   }

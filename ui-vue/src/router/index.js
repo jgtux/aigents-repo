@@ -87,30 +87,20 @@ const router = createRouter({
 
 // Navigation Guard - Protege rotas que requerem autenticação
 router.beforeEach(async (to, from, next) => {
-  console.log('=== NAVIGATION GUARD ===')
-  console.log('From:', from.path)
-  console.log('To:', to.path)
   
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  console.log('Requires auth:', requiresAuth)
   
   if (requiresAuth) {
-    console.log('Checking authentication...')
     try {
       const result = await checkAuth()
-      console.log('Auth check result:', result)
-      console.log('✅ User authenticated, allowing access')
       next()
     } catch (error) {
-      console.log('❌ Auth check failed:', error.message)
-      console.log('Redirecting to /login with redirect:', to.fullPath)
       next({
         path: '/login',
         query: { redirect: to.fullPath }
       })
     }
   } else {
-    console.log('Public route, allowing access')
     next()
   }
 })

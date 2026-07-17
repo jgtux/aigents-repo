@@ -164,9 +164,6 @@ export default {
                       this.$route.params.id ||
                       this.$route.params.uuid
     
-    console.log('Full route params:', this.$route.params)
-    console.log('Agent UUID:', agentUuid)
-    
     if (agentUuid && typeof agentUuid === 'string') {
       this.loadAgentDetails(agentUuid)
     } else {
@@ -294,7 +291,6 @@ export default {
         messageContent,
         // onChunk
         (chunk) => {
-          console.log('[DEBUG VUE] Received chunk:', JSON.stringify(chunk));
           
           // On first chunk, add the message
           if (this.currentBotMessageIndex === null) {
@@ -313,7 +309,6 @@ export default {
         },
         // onComplete
         (responseData) => {
-          console.log('[DEBUG VUE] Chat complete, final data:', responseData);
           
           if (this.currentBotMessageIndex !== null && this.messages[this.currentBotMessageIndex]) {
             this.messages[this.currentBotMessageIndex].streaming = false
@@ -322,7 +317,6 @@ export default {
           
           if (responseData && responseData.chat_uuid) {
             this.chatUuid = responseData.chat_uuid
-            console.log('[DEBUG VUE] Chat initialized with UUID:', this.chatUuid)
           }
           
           this.isProcessing = false
@@ -369,7 +363,6 @@ export default {
         messageContent,
         // onChunk
         (chunk) => {
-          console.log('[DEBUG VUE] Received chunk:', JSON.stringify(chunk));
           
           // On first chunk, add the message
           if (this.currentBotMessageIndex === null) {
@@ -388,7 +381,6 @@ export default {
         },
         // onComplete
         () => {
-          console.log('[DEBUG VUE] Message complete');
           
           if (this.currentBotMessageIndex !== null && this.messages[this.currentBotMessageIndex]) {
             this.messages[this.currentBotMessageIndex].streaming = false

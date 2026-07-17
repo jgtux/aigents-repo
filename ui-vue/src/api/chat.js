@@ -8,11 +8,9 @@ const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080';
  * The backend expects POST with JSON body and returns SSE stream
  */
 export const createChat = (agentUuid, messageContent, onChunk, onComplete, onError) => {
-  console.log('[DEBUG FRONTEND] createChat called with:', { agentUuid, messageContent });
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('[DEBUG FRONTEND] Request timeout');
     controller.abort();
     onError({ message: 'Request timeout - AI service may not be ready yet' });
   }, 30000); // 30 second timeout (increased for AI processing)
@@ -31,7 +29,6 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
   })
   .then(response => {
     clearTimeout(timeoutId);
-    console.log('[DEBUG FRONTEND] Response received, status:', response.status);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -45,7 +42,6 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
     function readStream() {
       reader.read().then(({ done, value }) => {
         if (done) {
-          console.log('[DEBUG FRONTEND] Stream ended');
           return
         }
         
@@ -54,22 +50,18 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
         buffer = lines.pop() || ''
         
         for (const line of lines) {
-          console.log('[DEBUG FRONTEND] Processing line:', line);
           
           if (line.startsWith('event:')) {
             currentEvent = line.substring(6).trim()
-            console.log('[DEBUG FRONTEND] Event type:', currentEvent);
             continue
           }
           
           if (line.startsWith('data:')) {
             const data = line.substring(5).trim()
-            console.log('[DEBUG FRONTEND] Data for event', currentEvent, ':', data.substring(0, 50));
             
             if (currentEvent === 'message') {
               onChunk(data)
             } else if (currentEvent === 'done') {
-              console.log('[DEBUG FRONTEND] Done event received, data:', data);
               try {
                 const finalData = JSON.parse(data)
                 onComplete(finalData)
@@ -79,7 +71,6 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
               }
               return
             } else if (currentEvent === 'error') {
-              console.log('[DEBUG FRONTEND] Error event:', data);
               onError({ message: data })
               return
             }
@@ -108,7 +99,6 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
   return () => {
     clearTimeout(timeoutId);
     controller.abort();
-    console.log('[DEBUG FRONTEND] Stream cleanup requested')
   }
 }
 
@@ -116,11 +106,9 @@ export const createChat = (agentUuid, messageContent, onChunk, onComplete, onErr
  * Send a message to an existing chat with SSE streaming via POST
  */
 export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onError) => {
-  console.log('[DEBUG FRONTEND] sendMessage called with:', { chatUuid, messageContent });
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('[DEBUG FRONTEND] Request timeout');
     controller.abort();
     onError({ message: 'Request timeout - AI service may not be ready yet' });
   }, 30000); // 30 second timeout
@@ -139,7 +127,6 @@ export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onErr
   })
   .then(response => {
     clearTimeout(timeoutId);
-    console.log('[DEBUG FRONTEND] Response received, status:', response.status);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -153,7 +140,6 @@ export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onErr
     function readStream() {
       reader.read().then(({ done, value }) => {
         if (done) {
-          console.log('[DEBUG FRONTEND] Stream ended');
           return
         }
         
@@ -162,22 +148,18 @@ export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onErr
         buffer = lines.pop() || ''
         
         for (const line of lines) {
-          console.log('[DEBUG FRONTEND] Processing line:', line);
           
           if (line.startsWith('event:')) {
             currentEvent = line.substring(6).trim()
-            console.log('[DEBUG FRONTEND] Event type:', currentEvent);
             continue
           }
           
           if (line.startsWith('data:')) {
             const data = line.substring(5).trim()
-            console.log('[DEBUG FRONTEND] Data for event', currentEvent, ':', data.substring(0, 50));
             
             if (currentEvent === 'message') {
               onChunk(data)
             } else if (currentEvent === 'done') {
-              console.log('[DEBUG FRONTEND] Done event received');
               try {
                 const finalData = JSON.parse(data)
                 onComplete(finalData)
@@ -187,7 +169,6 @@ export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onErr
               }
               return
             } else if (currentEvent === 'error') {
-              console.log('[DEBUG FRONTEND] Error event:', data);
               onError({ message: data })
               return
             }
@@ -216,7 +197,6 @@ export const sendMessage = (chatUuid, messageContent, onChunk, onComplete, onErr
   return () => {
     clearTimeout(timeoutId);
     controller.abort();
-    console.log('[DEBUG FRONTEND] Stream cleanup requested')
   }
 }
 

@@ -215,7 +215,6 @@ export default {
       project.isEditing = false
       project.lastEdited = new Date().toLocaleDateString('pt-BR')
       // Aqui você pode adicionar lógica para salvar no backend
-      console.log('Project saved:', project)
     },
     deleteProject(projectId) {
       if (confirm('Tem certeza que deseja deletar este projeto?')) {

@@ -102,7 +102,6 @@ export default {
     },
 
     handleForgotPassword() {
-      console.log("Forgot password clicked");
     }
   }
 };
