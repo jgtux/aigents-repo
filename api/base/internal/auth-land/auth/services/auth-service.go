@@ -22,7 +22,10 @@ func NewAuthService(repo auitf.AuthRepositoryITF) auitf.AuthServiceITF {
 }
 
 func (s *AuthService) Create(gctx *gin.Context, data *d.Auth) error {
-	hashedPass := a_at.HashPassAtom(data.Password)
+	hashedPass, err := a_at.HashPassAtom(data.Password)
+	if err != nil {
+		return err
+	}
 	data.Password = hashedPass
 
 	if err := s.r.Create(gctx, data); err != nil {
@@ -48,9 +51,7 @@ func (s *AuthService) Comparate(gctx *gin.Context, data *d.Auth) error {
 		return err
 	}
 
-	hashedTriedPass := a_at.HashPassAtom(data.Password)
-
-	if hashedTriedPass != auth.Password {
+	if !a_at.ComparePassAtom(auth.Password, data.Password) {
 		err = c_at.AbortAndBuildErrLogAtom(
 			gctx,
 			http.StatusUnauthorized,
